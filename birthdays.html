@@ -6,75 +6,22 @@
 <title>The Eternal – Birthdays</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #1a2433;
-    color: #d8eaf4;
-    font-family: Georgia, serif;
-    font-size: 12px;
-    padding: 10px;
-  }
-  .header {
-    font-size: 9px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #7a9aaa;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #2a3d52;
-    padding-bottom: 7px;
-  }
+  body { background: #1a2433; color: #d8eaf4; font-family: Georgia, serif; font-size: 12px; padding: 10px; }
+  .header { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #7a9aaa; margin-bottom: 10px; border-bottom: 1px solid #2a3d52; padding-bottom: 7px; }
   .row { display: flex; gap: 4px; margin-bottom: 6px; }
-  input, select {
-    background: #111820;
-    border: 1px solid #2a3d52;
-    color: #d8eaf4;
-    padding: 5px 7px;
-    font-size: 12px;
-    border-radius: 3px;
-    font-family: Georgia, serif;
-    outline: none;
-    width: 100%;
-  }
+  input, select { background: #111820; border: 1px solid #2a3d52; color: #d8eaf4; padding: 5px 7px; font-size: 12px; border-radius: 3px; font-family: Georgia, serif; outline: none; width: 100%; }
   select { padding: 5px 2px; }
-  .btn {
-    width: 100%;
-    background: linear-gradient(135deg, #2a6090, #1a4060);
-    color: #d8eaf4;
-    border: 1px solid #4a88b8;
-    padding: 7px;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: Georgia, serif;
-    margin-bottom: 6px;
-  }
+  .btn { width: 100%; background: linear-gradient(135deg, #2a6090, #1a4060); color: #d8eaf4; border: 1px solid #4a88b8; padding: 7px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; border-radius: 3px; cursor: pointer; font-family: Georgia, serif; margin-bottom: 6px; }
   .btn:hover { background: linear-gradient(135deg, #3a70a0, #2a5070); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .confirm { font-size: 11px; color: #5ab870; text-align: center; margin-bottom: 6px; display: none; }
-  .list { margin-top: 8px; }
-  .entry {
-    padding: 6px 8px;
-    margin-bottom: 4px;
-    background: #111820;
-    border-left: 2px solid #4a88b8;
-    border-radius: 2px;
-    font-size: 12px;
-    color: #d8eaf4;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
+  .error-msg { font-size: 11px; color: #e8843a; text-align: center; margin-bottom: 6px; display: none; }
+  .entry { padding: 6px 8px; margin-bottom: 4px; background: #111820; border-left: 2px solid #4a88b8; border-radius: 2px; font-size: 12px; color: #d8eaf4; display: flex; justify-content: space-between; align-items: flex-start; }
   .entry-info { flex: 1; }
   .entry-name { font-weight: bold; }
   .entry-note { color: #9ab8cc; font-size: 11px; }
   .entry-date { font-size: 11px; color: #7a9aaa; margin-top: 2px; }
-  .entry-del {
-    color: #7a9aaa;
-    cursor: pointer;
-    font-size: 14px;
-    padding-left: 6px;
-    line-height: 1;
-  }
+  .entry-del { color: #7a9aaa; cursor: pointer; font-size: 14px; padding-left: 6px; line-height: 1; }
   .entry-del:hover { color: #e8843a; }
   .empty { font-size: 12px; color: #7a9aaa; text-align: center; padding: 6px; font-style: italic; }
   .loading { font-size: 11px; color: #7a9aaa; text-align: center; padding: 6px; }
@@ -85,10 +32,7 @@
 </style>
 </head>
 <body>
-
 <div class="header">🎂 Next Birthdays</div>
-
-<!-- Input form -->
 <div class="row">
   <input id="bd-name" placeholder="Username" style="flex:2;" />
   <select id="bd-month" style="flex:1;" onchange="buildDays()">
@@ -98,133 +42,102 @@
     <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
     <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
   </select>
-  <select id="bd-day" style="flex:1;">
-    <option value="">Day</option>
-  </select>
+  <select id="bd-day" style="flex:1;"><option value="">Day</option></select>
 </div>
 <input id="bd-note" placeholder="Note (optional)" style="margin-bottom:6px;" />
-<button class="btn" onclick="saveBirthday()">Save Birthday</button>
+<button class="btn" id="save-btn" onclick="saveBirthday()">Save Birthday</button>
 <div class="confirm" id="bd-confirm">✅ Saved!</div>
-
-<!-- List -->
-<div class="list" id="bd-list">
-  <div class="loading">Loading birthdays…</div>
-</div>
-
+<div class="error-msg" id="bd-error">❌ Error saving. Try again.</div>
+<div class="list" id="bd-list"><div class="loading">Loading birthdays…</div></div>
 <div class="credits">Credits to <a href="https://www.chess.com/member/takieddinegoumri">TakieddineGOUMRI</a> for the idea</div>
 
 <script>
-const STORAGE_KEY = 'the-eternal-birthdays';
-const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const DIMS = [31,29,31,30,31,30,31,31,30,31,30,31];
+const BIN_ID  = '69ae775943b1c97be9c3be1f';
+const API_KEY = '$2a$10$Kk8Vd5sedpfuNMV9zDuWveDoizeE6i3TpoXTbBfmA2VR9ZkpcMnB.';
+const BASE    = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const MN      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DIMS    = [31,29,31,30,31,30,31,31,30,31,30,31];
 
 function buildDays() {
   var m = parseInt(document.getElementById('bd-month').value);
   var sel = document.getElementById('bd-day');
   while (sel.options.length) sel.remove(0);
   var o = document.createElement('option'); o.value=''; o.textContent='Day'; sel.appendChild(o);
-  if (m > 0) {
-    for (var i = 1; i <= DIMS[m-1]; i++) {
-      var opt = document.createElement('option'); opt.value = i; opt.textContent = i; sel.appendChild(opt);
-    }
-  }
+  if (m > 0) for (var i=1; i<=DIMS[m-1]; i++) { var opt=document.createElement('option'); opt.value=i; opt.textContent=i; sel.appendChild(opt); }
 }
 
 function daysUntil(m, d) {
-  var now = new Date();
-  var y = now.getFullYear();
-  var t = new Date(y, m-1, d);
-  if (t - now < -86400000) t = new Date(y+1, m-1, d);
-  return Math.round((t - now) / 86400000);
+  var now=new Date(), y=now.getFullYear(), t=new Date(y,m-1,d);
+  if (t-now < -86400000) t=new Date(y+1,m-1,d);
+  return Math.round((t-now)/86400000);
 }
 
-function renderList(entries) {
-  var list = document.getElementById('bd-list');
-  list.innerHTML = '';
-  if (!entries || entries.length === 0) {
-    list.innerHTML = '<div class="empty">No birthdays saved yet</div>';
-    return;
-  }
-  // Sort by days until birthday
-  var sorted = entries.slice().sort(function(a,b){ return daysUntil(a.m,a.d) - daysUntil(b.m,b.d); });
-  sorted.forEach(function(entry) {
-    var days = daysUntil(entry.m, entry.d);
-    var lbl = days === 0
-      ? '<span class="today-badge">🎂 Today!</span>'
-      : days <= 7
-        ? '<span class="soon-badge">in ' + days + ' day' + (days===1?'':'s') + '</span>'
-        : 'in ' + days + ' day' + (days===1?'':'s');
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-    var div = document.createElement('div');
-    div.className = 'entry';
-    div.innerHTML =
-      '<div class="entry-info">' +
-        '<span class="entry-name">' + escHtml(entry.n) + '</span>' +
-        (entry.nt ? ' <span class="entry-note">· ' + escHtml(entry.nt) + '</span>' : '') +
-        '<div class="entry-date">' + MN[entry.m-1] + ' ' + entry.d + ' &nbsp;·&nbsp; ' + lbl + '</div>' +
-      '</div>' +
-      '<span class="entry-del" onclick="deleteEntry(\'' + entry.id + '\')">×</span>';
+function renderList(entries) {
+  var list=document.getElementById('bd-list');
+  list.innerHTML='';
+  if (!entries||entries.length===0){list.innerHTML='<div class="empty">No birthdays saved yet</div>';return;}
+  var sorted=entries.slice().sort(function(a,b){return daysUntil(a.m,a.d)-daysUntil(b.m,b.d);});
+  sorted.forEach(function(entry){
+    var days=daysUntil(entry.m,entry.d);
+    var lbl=days===0?'<span class="today-badge">🎂 Today!</span>':days<=7?'<span class="soon-badge">in '+days+' day'+(days===1?'':'s')+'</span>':'in '+days+' day'+(days===1?'':'s');
+    var div=document.createElement('div'); div.className='entry';
+    div.innerHTML='<div class="entry-info"><span class="entry-name">'+escHtml(entry.n)+'</span>'+(entry.nt?' <span class="entry-note">· '+escHtml(entry.nt)+'</span>':'')+'<div class="entry-date">'+MN[entry.m-1]+' '+entry.d+' &nbsp;·&nbsp; '+lbl+'</div></div><span class="entry-del" onclick="deleteEntry(\''+entry.id+'\')">×</span>';
     list.appendChild(div);
   });
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+async function getEntries() {
+  var res=await fetch(BASE+'/latest',{headers:{'X-Master-Key':API_KEY}});
+  var data=await res.json();
+  return data.record.entries||[];
+}
+
+async function setEntries(entries) {
+  await fetch(BASE,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({entries:entries})});
 }
 
 async function loadBirthdays() {
-  try {
-    var result = await window.storage.get(STORAGE_KEY, true);
-    var entries = result ? JSON.parse(result.value) : [];
-    renderList(entries);
-  } catch(e) {
-    renderList([]);
-  }
+  try { renderList(await getEntries()); }
+  catch(e) { document.getElementById('bd-list').innerHTML='<div class="empty">Could not load birthdays.</div>'; }
 }
 
 async function saveBirthday() {
-  var n = document.getElementById('bd-name').value.trim();
-  var m = parseInt(document.getElementById('bd-month').value);
-  var d = parseInt(document.getElementById('bd-day').value);
-  var nt = document.getElementById('bd-note').value.trim();
-  if (!n || !m || !d) return;
-
-  var entries = [];
+  var n=document.getElementById('bd-name').value.trim();
+  var m=parseInt(document.getElementById('bd-month').value);
+  var d=parseInt(document.getElementById('bd-day').value);
+  var nt=document.getElementById('bd-note').value.trim();
+  if(!n||!m||!d) return;
+  var btn=document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  document.getElementById('bd-error').style.display='none';
   try {
-    var result = await window.storage.get(STORAGE_KEY, true);
-    entries = result ? JSON.parse(result.value) : [];
-  } catch(e) { entries = []; }
-
-  entries.push({ id: Date.now().toString(), n: n, m: m, d: d, nt: nt });
-  await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
-
-  // Reset form
-  document.getElementById('bd-name').value = '';
-  document.getElementById('bd-note').value = '';
-  document.getElementById('bd-month').value = '';
-  buildDays();
-
-  // Show confirm
-  var c = document.getElementById('bd-confirm');
-  c.style.display = 'block';
-  setTimeout(function(){ c.style.display = 'none'; }, 2500);
-
-  renderList(entries);
+    var entries=await getEntries();
+    entries.push({id:Date.now().toString(),n:n,m:m,d:d,nt:nt});
+    await setEntries(entries);
+    document.getElementById('bd-name').value='';
+    document.getElementById('bd-note').value='';
+    document.getElementById('bd-month').value='';
+    buildDays();
+    var c=document.getElementById('bd-confirm'); c.style.display='block';
+    setTimeout(function(){c.style.display='none';},2500);
+    renderList(entries);
+  } catch(e) {
+    var er=document.getElementById('bd-error'); er.style.display='block';
+    setTimeout(function(){er.style.display='none';},3000);
+  }
+  btn.disabled=false; btn.textContent='Save Birthday';
 }
 
 async function deleteEntry(id) {
-  var entries = [];
   try {
-    var result = await window.storage.get(STORAGE_KEY, true);
-    entries = result ? JSON.parse(result.value) : [];
-  } catch(e) { entries = []; }
-
-  entries = entries.filter(function(e){ return e.id !== id; });
-  await window.storage.set(STORAGE_KEY, JSON.stringify(entries), true);
-  renderList(entries);
+    var entries=await getEntries();
+    entries=entries.filter(function(e){return e.id!==id;});
+    await setEntries(entries); renderList(entries);
+  } catch(e){}
 }
 
-// Load on start
 loadBirthdays();
 </script>
 </body>
