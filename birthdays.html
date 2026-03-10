@@ -48,7 +48,7 @@
 <button class="btn" id="save-btn" onclick="saveBirthday()">Save Birthday</button>
 <div class="confirm" id="bd-confirm">✅ Saved!</div>
 <div class="error-msg" id="bd-error">❌ Error saving. Try again.</div>
-<div class="list" id="bd-list" style="max-height:200px;overflow-y:auto;"><div class="loading">Loading birthdays…</div></div>
+<div class="list" id="bd-list"><div class="loading">Loading birthdays…</div></div>
 <div class="credits">Credits to <a href="https://www.chess.com/member/takieddinegoumri">TakieddineGOUMRI</a> for the idea</div>
 
 <script>
@@ -89,24 +89,13 @@ function renderList(entries) {
 }
 
 async function getEntries() {
-  var res=await fetch(BASE+'/latest',{
-    method:'GET',
-    mode:'cors',
-    headers:{'X-Master-Key':API_KEY,'X-Bin-Meta':'false'}
-  });
-  if(!res.ok){ var t=await res.text(); throw new Error('GET '+res.status+': '+t); }
+  var res=await fetch(BASE+'/latest',{headers:{'X-Master-Key':API_KEY}});
   var data=await res.json();
   return data.record.entries||[];
 }
 
 async function setEntries(entries) {
-  var res=await fetch(BASE,{
-    method:'PUT',
-    mode:'cors',
-    headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},
-    body:JSON.stringify({entries:entries})
-  });
-  if(!res.ok){ var t=await res.text(); throw new Error('PUT '+res.status+': '+t); }
+  await fetch(BASE,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({entries:entries})});
 }
 
 async function loadBirthdays() {
@@ -135,10 +124,8 @@ async function saveBirthday() {
     setTimeout(function(){c.style.display='none';},2500);
     renderList(entries);
   } catch(e) {
-    var er=document.getElementById('bd-error'); 
-    er.textContent='❌ '+e.message;
-    er.style.display='block';
-    setTimeout(function(){er.style.display='none'; er.textContent='❌ Error saving. Try again.';},6000);
+    var er=document.getElementById('bd-error'); er.style.display='block';
+    setTimeout(function(){er.style.display='none';},3000);
   }
   btn.disabled=false; btn.textContent='Save Birthday';
 }
