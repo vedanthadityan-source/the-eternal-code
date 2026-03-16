@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: #1a2433;
+    font-family: Georgia, serif;
+    color: #d8eaf4;
+    overflow: hidden;
+  }
+
+  /* Hidden by default — shown when active */
+  #alert {
+    display: none;
+    position: relative;
+    background: #1a2433;
+    border-top: 2px solid #e8843a;
+    border-bottom: 1px solid #2a3d52;
+    padding: 12px 12px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .pulse-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px solid #e8843a;
+    pointer-events: none;
+    animation: pulse-border 1.8s ease-out infinite;
+  }
+
+  @keyframes pulse-border {
+    0%   { opacity: 0.9; transform: scale(1); }
+    70%  { opacity: 0; transform: scale(1.03); }
+    100% { opacity: 0; transform: scale(1.03); }
+  }
+
+  @keyframes flash-bolt {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  @keyframes live-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.1; }
+  }
+
+  .alert-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid #2a3d52;
+  }
+
+  .bolt {
+    font-size: 13px;
+    animation: flash-bolt 1.2s ease-in-out infinite;
+  }
+
+  .alert-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #e8843a;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    background: #e03030;
+    border-radius: 50%;
+    display: inline-block;
+    animation: live-blink 1s ease-in-out infinite;
+    margin-left: 4px;
+  }
+
+  .alert-message {
+    font-size: 12px;
+    color: #d8eaf4;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  .alert-message strong {
+    color: #e8843a;
+    font-style: normal;
+    font-weight: bold;
+  }
+
+  .join-btn {
+    display: block;
+    padding: 8px 10px;
+    background: rgba(232,132,58,0.12);
+    border: 1px solid rgba(232,132,58,0.45);
+    border-radius: 4px;
+    color: #e8843a;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-family: Georgia, serif;
+    transition: background 0.2s;
+  }
+
+  .join-btn:hover {
+    background: rgba(232,132,58,0.22);
+  }
+
+  /* Shown when no active tournament */
+  #inactive {
+    display: none;
+    padding: 10px 2px;
+    font-size: 11px;
+    color: #7a9aaa;
+    font-style: italic;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div id="alert">
+  <div class="pulse-ring"></div>
+  <div class="alert-header">
+    <span class="bolt">⚡</span>
+    <span class="alert-label" id="alert-type">Tournament Alert</span>
+    <span class="live-dot"></span>
+  </div>
+  <div class="alert-message" id="alert-message"></div>
+  <a class="join-btn" id="join-btn" href="#" target="_blank" rel="noopener">♟ Join the Tournament →</a>
+</div>
+
+<div id="inactive">No active tournament right now.</div>
+
+<script>
+  const CONFIG_URL = 'https://vedanthadityan-source.github.io/the-eternal-code/tournament.json';
+
+  async function load() {
+    try {
+      // Cache-bust so chess.com always gets the latest version
+      const res  = await fetch(CONFIG_URL + '?v=' + Date.now());
+      const data = await res.json();
+
+      if (data.active) {
+        document.getElementById('alert-type').textContent    = data.type || 'Tournament Alert';
+        document.getElementById('alert-message').innerHTML  = data.message || '';
+        document.getElementById('join-btn').href            = data.url || '#';
+        document.getElementById('alert').style.display      = 'block';
+      } else {
+        document.getElementById('inactive').style.display   = 'block';
+      }
+    } catch (e) {
+      document.getElementById('inactive').style.display = 'block';
+      console.error(e);
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>
