@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: transparent;
+    font-family: Georgia, serif;
+    color: #d8eaf4;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 2px;
+  }
+
+  .avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid #4a88b8;
+    object-fit: cover;
+    display: block;
+    background: #17202d;
+  }
+
+  .online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background: #4caf50;
+    border-radius: 50%;
+    border: 2px solid #1a2433;
+  }
+
+  .info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .username {
+    font-size: 14px;
+    font-weight: 600;
+    color: #d8eaf4;
+    font-family: 'Courier New', courier;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    display: block;
+  }
+
+  .username:hover {
+    color: #4a88b8;
+  }
+
+  .rating-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .rating-badge {
+    font-size: 10px;
+    color: #7a9aaa;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .rating-value {
+    font-size: 12px;
+    font-weight: bold;
+    color: #e8843a;
+    font-family: 'Courier New', courier;
+  }
+
+  .rating-type {
+    font-size: 10px;
+    color: #9ab8cc;
+    font-style: italic;
+  }
+
+  .loading {
+    font-size: 11px;
+    color: #7a9aaa;
+    font-style: italic;
+    padding: 8px 2px;
+  }
+
+  .error {
+    font-size: 11px;
+    color: #e8843a;
+    font-style: italic;
+    padding: 8px 2px;
+  }
+</style>
+</head>
+<body>
+
+<div id="root"><div class="loading">Loading newest member...</div></div>
+
+<script>
+const CLUB = 'the-eternal';
+const API  = 'https://api.chess.com/pub';
+
+const ratingTypes = [
+  ['chess_blitz',   'Blitz'],
+  ['chess_rapid',   'Rapid'],
+  ['chess_bullet',  'Bullet'],
+  ['chess_daily',   'Daily'],
+  ['tactics',       'Tactics'],
+];
+
+function getBestRating(stats) {
+  let best = null, bestVal = 0, bestLabel = '';
+  for (const [key, label] of ratingTypes) {
+    const last = stats?.[key]?.last?.rating || stats?.[key]?.best?.rating || 0;
+    if (last > bestVal) { bestVal = last; best = last; bestLabel = label; }
+  }
+  return best ? { value: best, label: bestLabel } : null;
+}
+
+async function load() {
+  const root = document.getElementById('root');
+  try {
+    // Fetch members — newest are in the "new" sub-object
+    const res  = await fetch(`${API}/club/${CLUB}/members`);
+    const data = await res.json();
+
+    // members object has weekly / monthly / all_time arrays
+    // newest joined member will be first in the most-recently-joined list
+    const allMembers = [
+      ...(data.weekly  || []),
+      ...(data.monthly || []),
+      ...(data.all_time || []),
+    ];
+
+    if (!allMembers.length) throw new Error('No members found');
+
+    // Sort by joined date descending — pick the newest
+    allMembers.sort((a, b) => (b.joined || 0) - (a.joined || 0));
+    const newest = allMembers[0];
+    const username = newest.username;
+
+    // Fetch profile + stats in parallel
+    const [profileRes, statsRes] = await Promise.all([
+      fetch(`${API}/player/${username}`),
+      fetch(`${API}/player/${username}/stats`),
+    ]);
+    const profile = await profileRes.json();
+    const stats   = await statsRes.json();
+
+    const avatar  = profile.avatar || 'https://www.chess.com/bundles/web/images/user-image.007dad08.svg';
+    const rating  = getBestRating(stats);
+    const profileUrl = `https://www.chess.com/member/${username}`;
+
+    root.innerHTML = `
+      <div class="container">
+        <div class="avatar-wrap">
+          <img class="avatar" src="${avatar}" alt="${username}" onerror="this.src='https://www.chess.com/bundles/web/images/user-image.007dad08.svg'" />
+        </div>
+        <div class="info">
+          <a class="username" href="${profileUrl}" target="_blank">${username}</a>
+          <div class="rating-row">
+            <span class="rating-badge">Best:</span>
+            ${rating
+              ? `<span class="rating-value">${rating.value}</span><span class="rating-type">${rating.label}</span>`
+              : `<span class="rating-type">Unrated</span>`
+            }
+          </div>
+        </div>
+      </div>
+    `;
+
+  } catch (e) {
+    root.innerHTML = `<div class="error">Could not load member data.</div>`;
+    console.error(e);
+  }
+}
+
+load();
+</script>
+</body>
+</html>
