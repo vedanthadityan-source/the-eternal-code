@@ -10,15 +10,33 @@
     background: transparent;
     font-family: Georgia, serif;
     color: #d8eaf4;
-    padding: 0;
     overflow: hidden;
   }
 
-  .container {
+  .member-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 4px 2px;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #17202d;
+    border-left: 2px solid #4a88b8;
+    margin-bottom: 6px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .member-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .member-card:first-child {
+    border-left: 2px solid #e8843a;
+  }
+
+  .member-card:first-child .rank-badge {
+    background: rgba(232,132,58,0.18);
+    color: #e8843a;
+    border: 1px solid rgba(232,132,58,0.35);
   }
 
   .avatar-wrap {
@@ -27,24 +45,36 @@
   }
 
   .avatar {
-    width: 52px;
-    height: 52px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border: 2px solid #4a88b8;
+    border: 1.5px solid #2a3d52;
     object-fit: cover;
     display: block;
-    background: #17202d;
+    background: #1a2433;
   }
 
-  .online-dot {
+  .member-card:first-child .avatar {
+    border-color: #e8843a;
+    width: 44px;
+    height: 44px;
+  }
+
+  .new-badge {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 10px;
-    height: 10px;
+    top: -3px;
+    right: -3px;
+    width: 12px;
+    height: 12px;
     background: #4caf50;
     border-radius: 50%;
-    border: 2px solid #1a2433;
+    border: 1.5px solid #17202d;
+    animation: pulse-green 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
   }
 
   .info {
@@ -52,8 +82,15 @@
     min-width: 0;
   }
 
+  .username-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+  }
+
   .username {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #d8eaf4;
     font-family: 'Courier New', courier;
@@ -64,132 +101,214 @@
     display: block;
   }
 
-  .username:hover {
-    color: #4a88b8;
+  .member-card:first-child .username {
+    color: #e8c89a;
+    font-size: 13px;
   }
 
-  .rating-row {
+  .username:hover { color: #6aacda; }
+
+  .rank-badge {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #4a88b8;
+    background: rgba(74,136,184,0.15);
+    border: 1px solid rgba(74,136,184,0.3);
+    padding: 1px 5px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .stats-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 4px;
-    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .rating-badge {
+  .rating-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(26,36,51,0.8);
+    border: 1px solid #2a3d52;
+    border-radius: 3px;
+    padding: 2px 6px;
+  }
+
+  .rating-icon {
     font-size: 10px;
-    color: #7a9aaa;
-    letter-spacing: 1px;
-    text-transform: uppercase;
   }
 
-  .rating-value {
-    font-size: 12px;
+  .rating-val {
+    font-size: 11px;
     font-weight: bold;
     color: #e8843a;
     font-family: 'Courier New', courier;
   }
 
-  .rating-type {
-    font-size: 10px;
+  .rating-label {
+    font-size: 9px;
+    color: #7a9aaa;
+    letter-spacing: 0.5px;
+  }
+
+  .skeleton {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #17202d;
+    border-left: 2px solid #2a3d52;
+    margin-bottom: 6px;
+    opacity: 0.5;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  .skeleton:last-child { margin-bottom: 0; }
+
+  .skel-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2a3d52;
+    flex-shrink: 0;
+  }
+
+  .skel-lines { flex: 1; }
+
+  .skel-line {
+    height: 9px;
+    background: #2a3d52;
+    border-radius: 3px;
+    margin-bottom: 6px;
+  }
+
+  .skel-line.short { width: 55%; }
+  .skel-line.long  { width: 80%; }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 0.7; }
+  }
+
+  .error-msg {
+    font-size: 11px;
     color: #9ab8cc;
     font-style: italic;
-  }
-
-  .loading {
-    font-size: 11px;
-    color: #7a9aaa;
-    font-style: italic;
-    padding: 8px 2px;
-  }
-
-  .error {
-    font-size: 11px;
-    color: #e8843a;
-    font-style: italic;
-    padding: 8px 2px;
+    padding: 6px 2px;
+    text-align: center;
   }
 </style>
 </head>
 <body>
 
-<div id="root"><div class="loading">Loading newest member...</div></div>
+<div id="root">
+  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
+  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
+  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
+  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
+</div>
 
 <script>
 const CLUB = 'the-eternal';
 const API  = 'https://api.chess.com/pub';
+const COUNT = 4;
 
-const ratingTypes = [
-  ['chess_blitz',   'Blitz'],
-  ['chess_rapid',   'Rapid'],
-  ['chess_bullet',  'Bullet'],
-  ['chess_daily',   'Daily'],
-  ['tactics',       'Tactics'],
+const RATING_KEYS = [
+  ['chess_blitz',  '⚡', 'Blitz'],
+  ['chess_rapid',  '🕐', 'Rapid'],
+  ['chess_bullet', '🚀', 'Bullet'],
+  ['chess_daily',  '📅', 'Daily'],
 ];
 
+const RANK_LABELS = ['Newest', '2nd', '3rd', '4th'];
+
 function getBestRating(stats) {
-  let best = null, bestVal = 0, bestLabel = '';
-  for (const [key, label] of ratingTypes) {
-    const last = stats?.[key]?.last?.rating || stats?.[key]?.best?.rating || 0;
-    if (last > bestVal) { bestVal = last; best = last; bestLabel = label; }
+  let best = 0, icon = '♟', label = '';
+  for (const [key, ic, lbl] of RATING_KEYS) {
+    const val = stats?.[key]?.last?.rating || stats?.[key]?.best?.rating || 0;
+    if (val > best) { best = val; icon = ic; label = lbl; }
   }
-  return best ? { value: best, label: bestLabel } : null;
+  return best ? { value: best, icon, label } : null;
 }
 
 async function load() {
   const root = document.getElementById('root');
   try {
-    // Fetch members — newest are in the "new" sub-object
     const res  = await fetch(`${API}/club/${CLUB}/members`);
     const data = await res.json();
 
-    // members object has weekly / monthly / all_time arrays
-    // newest joined member will be first in the most-recently-joined list
-    const allMembers = [
-      ...(data.weekly  || []),
-      ...(data.monthly || []),
-      ...(data.all_time || []),
+    const all = [
+      ...(data.weekly    || []),
+      ...(data.monthly   || []),
+      ...(data.all_time  || []),
     ];
 
-    if (!allMembers.length) throw new Error('No members found');
+    if (!all.length) throw new Error('No members');
 
-    // Sort by joined date descending — pick the newest
-    allMembers.sort((a, b) => (b.joined || 0) - (a.joined || 0));
-    const newest = allMembers[0];
-    const username = newest.username;
+    // Deduplicate by username
+    const seen = new Set();
+    const unique = all.filter(m => {
+      if (seen.has(m.username)) return false;
+      seen.add(m.username);
+      return true;
+    });
 
-    // Fetch profile + stats in parallel
-    const [profileRes, statsRes] = await Promise.all([
-      fetch(`${API}/player/${username}`),
-      fetch(`${API}/player/${username}/stats`),
-    ]);
-    const profile = await profileRes.json();
-    const stats   = await statsRes.json();
+    unique.sort((a, b) => (b.joined || 0) - (a.joined || 0));
+    const newest = unique.slice(0, COUNT);
 
-    const avatar  = profile.avatar || 'https://www.chess.com/bundles/web/images/user-image.007dad08.svg';
-    const rating  = getBestRating(stats);
-    const profileUrl = `https://www.chess.com/member/${username}`;
+    // Fetch all profiles + stats in parallel
+    const details = await Promise.all(newest.map(async (m, i) => {
+      try {
+        const [pRes, sRes] = await Promise.all([
+          fetch(`${API}/player/${m.username}`),
+          fetch(`${API}/player/${m.username}/stats`),
+        ]);
+        const profile = await pRes.json();
+        const stats   = await sRes.json();
+        return { username: m.username, profile, stats, rank: i };
+      } catch {
+        return { username: m.username, profile: {}, stats: {}, rank: i };
+      }
+    }));
 
-    root.innerHTML = `
-      <div class="container">
-        <div class="avatar-wrap">
-          <img class="avatar" src="${avatar}" alt="${username}" onerror="this.src='https://www.chess.com/bundles/web/images/user-image.007dad08.svg'" />
-        </div>
-        <div class="info">
-          <a class="username" href="${profileUrl}" target="_blank">${username}</a>
-          <div class="rating-row">
-            <span class="rating-badge">Best:</span>
-            ${rating
-              ? `<span class="rating-value">${rating.value}</span><span class="rating-type">${rating.label}</span>`
-              : `<span class="rating-type">Unrated</span>`
-            }
+    root.innerHTML = details.map(({ username, profile, stats, rank }) => {
+      const avatar  = profile.avatar || '';
+      const rating  = getBestRating(stats);
+      const url     = `https://www.chess.com/member/${username}`;
+      const imgTag  = avatar
+        ? `<img class="avatar" src="${avatar}" alt="${username}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="avatar" style="display:none;align-items:center;justify-content:center;font-size:18px;color:#7a9aaa;">♟</div>`
+        : `<div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:18px;color:#7a9aaa;">♟</div>`;
+
+      return `
+        <div class="member-card">
+          <div class="avatar-wrap">
+            ${imgTag}
+            ${rank === 0 ? '<div class="new-badge"></div>' : ''}
+          </div>
+          <div class="info">
+            <div class="username-row">
+              <a class="username" href="${url}" target="_blank">${username}</a>
+              <span class="rank-badge">${RANK_LABELS[rank]}</span>
+            </div>
+            <div class="stats-row">
+              ${rating ? `
+                <div class="rating-pill">
+                  <span class="rating-icon">${rating.icon}</span>
+                  <span class="rating-val">${rating.value}</span>
+                  <span class="rating-label">${rating.label}</span>
+                </div>` : `<span class="rating-label" style="font-style:italic;">Unrated</span>`
+              }
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    }).join('');
 
   } catch (e) {
-    root.innerHTML = `<div class="error">Could not load member data.</div>`;
+    root.innerHTML = `<div class="error-msg">Could not load member data.</div>`;
     console.error(e);
   }
 }
