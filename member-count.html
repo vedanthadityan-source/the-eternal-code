@@ -3,10 +3,14 @@
 <head><meta charset="UTF-8" /></head>
 <body>
 <script>
-  fetch('https://api.chess.com/pub/club/the-eternal')
+  fetch('https://api.chess.com/pub/club/the-eternal/members')
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      window.parent.postMessage({ type: 'eternal-member-count', count: data.members_count }, '*');
+      var count = 0;
+      if (data.weekly) count += data.weekly.length;
+      if (data.monthly) count += data.monthly.length;
+      if (data.all_time) count += data.all_time.length;
+      window.parent.postMessage({ type: 'eternal-member-count', count: count }, '*');
     });
 </script>
 </body>
