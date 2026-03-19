@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8" /></head>
+<body>
+<script>
+  fetch('https://api.chess.com/pub/club/the-eternal')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      window.parent.postMessage({ type: 'eternal-member-count', count: data.members_count }, '*');
+    });
+</script>
+</body>
+</html>
