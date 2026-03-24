@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #1a2433; font-family: Georgia, serif; color: #d8eaf4; overflow: hidden; }
+  .entry { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #17202d; border-left: 2px solid #d4a84a; margin-bottom: 6px; border-radius: 2px; }
+  .badge { font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #fff; padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
+  .name { font-size: 13px; color: #d8eaf4; font-weight: 600; text-decoration: none; }
+  .name:hover { color: #e8c84a; }
+  .empty { font-size: 12px; color: #7a9aaa; font-style: italic; text-align: center; padding: 6px; }
+  .loading { font-size: 11px; color: #7a9aaa; text-align: center; padding: 6px; }
+</style>
+</head>
+<body>
+<div id="list"><div class="loading">Loading titled players…</div></div>
+<script>
+var TITLE_COLORS = {
+  'GM': '#c0a030', 'WGM': '#c070a0',
+  'IM': '#7a4a9a', 'WIM': '#9a5aaa',
+  'FM': '#4a6fa8', 'WFM': '#5a7fb8',
+  'NM': '#5a8a5a', 'WNM': '#6a9a6a',
+  'CM': '#7a6a4a', 'WCM': '#8a7a5a'
+};
+var TITLES = ['GM','WGM','IM','WIM','FM','WFM','NM','WNM','CM','WCM'];
+
+async function getClubMembers() {
+  var res = await fetch('https://api.chess.com/pub/club/the-eternal/members');
+  var data = await res.json();
+  var all = [];
+  if (data.weekly) all = all.concat(data.weekly.map(function(m){ return m.username; }));
+  if (data.monthly) all = all.concat(data.monthly.map(function(m){ return m.username; }));
+  if (data.all_time) all = all.concat(data.all_time.map(function(m){ return m.username; }));
+  return all;
+}
+
+async function getTitledByTitle(title) {
+  try {
+    var res = await fetch('https://api.chess.com/pub/titled/' + title);
+    var data = await res.json();
+    return data.players || [];
+  } catch(e) { return []; }
+}
+
+async function run() {
+  try {
+    var members = await getClubMembers();
+    var memberSet = new Set(members.map(function(m){ return m.toLowerCase(); }));
+
+    // Fetch all titled players in parallel
+    var results = await Promise.all(TITLES.map(function(t){ return getTitledByTitle(t).then(function(players){ return { title: t, players: players }; }); }));
+
+    var found = [];
+    results.forEach(function(r) {
+      r.players.forEach(function(p) {
+        if (memberSet.has(p.toLowerCase())) {
+          found.push({ username: p, title: r.title });
+        }
+      });
+    });
+
+    var list = document.getElementById('list');
+    if (found.length === 0) {
+      list.innerHTML = '<div class="empty">No titled players found.</div>';
+      return;
+    }
+
+    // Sort by title prestige
+    var order = { 'GM':0,'WGM':1,'IM':2,'WIM':3,'FM':4,'WFM':5,'NM':6,'WNM':7,'CM':8,'WCM':9 };
+    found.sort(function(a,b){ return (order[a.title]||99) - (order[b.title]||99); });
+
+    list.innerHTML = '';
+    found.forEach(function(p) {
+      var color = TITLE_COLORS[p.title] || '#4a6fa8';
+      var div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = '<span class="badge" style="background:' + color + ';">' + p.title + '</span>' +
+        '<a class="name" href="https://www.chess.com/member/' + p.username + '" target="_blank" rel="noopener">' + p.username + '</a>';
+      list.appendChild(div);
+    });
+
+    // Resize iframe height to fit content
+    window.parent.postMessage({ type: 'titled-height', height: document.body.scrollHeight }, '*');
+
+  } catch(e) {
+    document.getElementById('list').innerHTML = '<div class="empty">Could not load titled players.</div>';
+  }
+}
+
+run();
+</script>
+</body>
+</html>
