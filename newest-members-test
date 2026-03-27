@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" c"width=device-width, initial-scale=1.0">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background:#1a2433;
+  font-family: system-ui, -apple-system, sans-serif;
+  padding:10px;
+}
+
+/* PANEL */
+.panel {
+  background:#1f2d3d;
+  border-radius:18px;
+  padding:14px;
+  width:100%;
+  max-width:320px;
+  border:1px solid #2f4a63;
+}
+
+/* TITLE */
+.panel-title {
+  font-weight:700;
+  color:#6aacda;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+  font-size:14px;
+}
+
+.dot {
+  width:8px;
+  height:8px;
+  background:#4da3ff;
+  border-radius:50%;
+}
+
+/* CARD */
+.card {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#223447;
+  border:1px solid #2f4a63;
+  border-radius:14px;
+  padding:10px;
+  margin-bottom:10px;
+  transition:0.2s ease;
+}
+
+.card:hover {
+  transform:scale(1.02);
+  background:#263d55;
+}
+
+/* AVATAR */
+.avatar-ring {
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  padding:2px;
+  background:#4da3ff;
+  flex-shrink:0;
+}
+
+.avatar-ring img {
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+/* INFO */
+.card-info {
+  flex:1;
+  min-width:0;
+}
+
+.name {
+  font-weight:700;
+  color:#d8eaf4;
+  font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.sub {
+  font-size:11px;
+  color:#8fb3cc;
+  margin-top:2px;
+}
+
+/* TIME */
+.time {
+  font-size:11px;
+  color:#6aacda;
+  white-space:nowrap;
+}
+
+/* LOADING */
+.skeleton {
+  height:60px;
+  border-radius:12px;
+  background:#2a3d52;
+  margin-bottom:10px;
+  animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity:.5 }
+  50% { opacity:1 }
+}
+
+/* ERROR */
+.error {
+  font-size:12px;
+  color:#8fb3cc;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="root">
+  <div class="skeleton"></div>
+  <div class="skeleton"></div>
+  <div class="skeleton"></div>
+</div>
+
+<script>
+const CLUB  = 'the-eternal';
+const API   = 'https://api.chess.com/pub';
+const COUNT = 4;
+
+const RATING_KEYS = [
+  ['chess_blitz','⚡','Blitz'],
+  ['chess_rapid','🕐','Rapid'],
+  ['chess_bullet','🚀','Bullet'],
+];
+
+function getBestRating(stats){
+  let best=0, icon='♟', label='';
+  for(const [key,ic,lbl] of RATING_KEYS){
+    const val = stats?.[key]?.last?.rating || stats?.[key]?.best?.rating || 0;
+    if(val>best){ best=val; icon=ic; label=lbl; }
+  }
+  return best ? {value:best,icon,label} : null;
+}
+
+function timeAgo(ts){
+  const now = Math.floor(Date.now()/1000);
+  const s = now - ts;
+  if(s<60) return s+'s ago';
+  const m = Math.floor(s/60);
+  if(m<60) return m+'m ago';
+  const h = Math.floor(m/60);
+  if(h<24) return h+'h ago';
+  const d = Math.floor(h/24);
+  return d+'d ago';
+}
+
+async function load(){
+  const root = document.getElementById('root');
+
+  try{
+    const res = await fetch(`${API}/club/${CLUB}/members`);
+    const data = await res.json();
+
+    const all = [
+      ...(data.weekly||[]),
+      ...(data.monthly||[]),
+      ...(data.all_time||[])
+    ];
+
+    const seen = new Set();
+    const unique = all.filter(m=>{
+      if(seen.has(m.username)) return false;
+      seen.add(m.username);
+      return true;
+    });
+
+    unique.sort((a,b)=>(b.joined||0)-(a.joined||0));
+    const newest = unique.slice(0,COUNT);
+
+    const details = await Promise.all(newest.map(async m=>{
+      try{
+        const [pRes,sRes] = await Promise.all([
+          fetch(`${API}/player/${m.username}`),
+          fetch(`${API}/player/${m.username}/stats`)
+        ]);
+
+        return {
+          username:m.username,
+          profile:await pRes.json(),
+          stats:await sRes.json(),
+          joined:m.joined
+        };
+
+      }catch{
+        return {username:m.username,profile:{},stats:{},joined:m.joined};
+      }
+    }));
+
+    root.innerHTML = `
+      <div class="panel">
+        <div class="panel-title">
+          <span class="dot"></span>
+          New Members
+        </div>
+
+        ${details.map(({username,profile,stats,joined})=>{
+          const avatar = profile.avatar || 'https://www.chess.com/bundles/web/images/noavatar_l.84a92436@2x.gif';
+          const rating = getBestRating(stats);
+
+          return `
+            <div class="card">
+              <div class="avatar-ring">
+                <img src="${avatar}" />
+              </div>
+
+              <div class="card-info">
+                <div class="name">@${username}</div>
+                <div class="sub">
+                  ${rating ? `${rating.icon} ${rating.value} (${rating.label})` : 'Unrated'}
+                </div>
+              </div>
+
+              <div class="time">${timeAgo(joined)}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+  }catch(e){
+    root.innerHTML = `<div class="error">Failed to load data</div>`;
+  }
+}
+
+load();
+
+/* 🔄 AUTO REFRESH EVERY 30s */
+setInterval(load, 30000);
+</script>
+
+</body>
+</html>
