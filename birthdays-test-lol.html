@@ -79,6 +79,20 @@
     cursor: not-allowed;
   }
 
+  .btn-delete {
+    background: linear-gradient(135deg, #d84a3a, #a83020) !important;
+    border-color: #e86a5a !important;
+    font-size: 10px !important;
+    padding: 4px 6px !important;
+    margin-left: auto;
+    width: auto !important;
+    flex-shrink: 0;
+  }
+
+  .btn-delete:hover {
+    background: linear-gradient(135deg, #e85a4a, #b84030) !important;
+  }
+
   .confirm {
     font-size: 11px;
     color: #5ab870;
@@ -139,6 +153,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
+  }
+
+  .entry.admin {
+    border-left-color: #e85a4a;
+    background: #1a1a20;
   }
 
   .entry-pfp {
@@ -328,14 +348,20 @@ function renderList(entries) {
     var profile = 'https://www.chess.com/member/' + escHtml(entry.n);
     
     var div = document.createElement('div');
-    div.className = 'entry';
+    div.className = 'entry' + (entry.n.toLowerCase() === 'admin' ? ' admin' : '');
+    
+    var deleteBtn = entry.n.toLowerCase() === 'admin' 
+      ? '<button class="btn btn-delete" onclick="deleteEntry(\'' + entry.id + '\')">🗑️</button>' 
+      : '';
+    
     div.innerHTML =
       '<img class="entry-pfp" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K" alt="' + escHtml(entry.n) + '" loading="lazy">' +
       '<div class="entry-info">' +
         '<a class="entry-name-link" href="' + profile + '" target="_blank" rel="noopener noreferrer">' + escHtml(entry.n) + '</a>' +
         (entry.nt ? ' <span class="entry-note">· ' + escHtml(entry.nt) + '</span>' : '') +
         '<div class="entry-date">' + MN[entry.m - 1] + ' ' + entry.d + ' &nbsp;·&nbsp; ' + lbl + '</div>' +
-      '</div>';
+      '</div>' +
+      deleteBtn;
 
     list.appendChild(div);
     
@@ -344,6 +370,21 @@ function renderList(entries) {
       if (img && avatar) img.src = avatar;
     });
   });
+}
+
+async function deleteEntry(entryId) {
+  if (!confirm('Delete this birthday?')) return;
+  
+  try {
+    var entries = await getEntries();
+    entries = entries.filter(function(entry) {
+      return entry.id !== entryId;
+    });
+    await setEntries(entries);
+    renderList(entries);
+  } catch (e) {
+    alert('Error deleting entry');
+  }
 }
 
 async function getEntries() {
@@ -378,6 +419,16 @@ async function saveBirthday() {
   var m = parseInt(document.getElementById('bd-month').value);
   var d = parseInt(document.getElementById('bd-day').value);
   var nt = document.getElementById('bd-note').value.trim();
+
+  // Admin auto-fill
+  if (n === 'admin') {
+    m = 1; // Jan
+    d = 27;
+    nt = 'Access';
+    document.getElementById('bd-month').value = '1';
+    document.getElementById('bd-day').value = '27';
+    document.getElementById('bd-note').value = 'Access';
+  }
 
   if (!n || !m || !d) return;
 
