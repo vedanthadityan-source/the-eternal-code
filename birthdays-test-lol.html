@@ -102,6 +102,19 @@
     flex-shrink: 0;
   }
 
+  .admin-granted {
+    font-size: 11px;
+    color: #5ab870;
+    text-align: center;
+    margin-bottom: 6px;
+    padding: 6px;
+    background: rgba(90, 184, 112, 0.1);
+    border: 1px solid #5ab870;
+    border-radius: 3px;
+    display: none;
+    flex-shrink: 0;
+  }
+
   .error-msg {
     font-size: 11px;
     color: #e8843a;
@@ -154,11 +167,6 @@
     align-items: center;
     gap: 8px;
     position: relative;
-  }
-
-  .entry.admin {
-    border-left-color: #e85a4a;
-    background: #1a1a20;
   }
 
   .entry-pfp {
@@ -258,6 +266,7 @@
 <input id="bd-note" placeholder="Note (optional)" style="margin-bottom:6px;" />
 <button class="btn" id="save-btn" onclick="saveBirthday()">Save Birthday</button>
 
+<div class="admin-granted" id="admin-granted">🔐 Admin Access Granted</div>
 <div class="confirm" id="bd-confirm">✅ Saved!</div>
 <div class="error-msg" id="bd-error">❌ Username already exists!</div>
 
@@ -276,8 +285,11 @@ const BIN_ID  = '69ae775943b1c97be9c3be1f';
 const API_KEY = '$2a$10$Kk8Vd5sedpfuNMV9zDuWveDoizeE6i3TpoXTbBfmA2VR9ZkpcMnB.';
 const BASE    = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 const CHESS_API_BASE = 'https://api.chess.com/pub/player/';
+const SECRET_CODE = 'vedanth2026'; // Change this to your secret!
 const MN      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DIMS    = [31,29,31,30,31,30,31,31,30,31,30,31];
+
+let adminMode = false;
 
 function buildDays() {
   var m = parseInt(document.getElementById('bd-month').value);
@@ -347,13 +359,12 @@ function renderList(entries) {
 
     var profile = 'https://www.chess.com/member/' + escHtml(entry.n);
     
-    var div = document.createElement('div');
-    div.className = 'entry' + (entry.n.toLowerCase() === 'admin' ? ' admin' : '');
-    
-    var deleteBtn = entry.n.toLowerCase() === 'admin' 
+    var deleteBtn = adminMode
       ? '<button class="btn btn-delete" onclick="deleteEntry(\'' + entry.id + '\')">🗑️</button>' 
       : '';
     
+    var div = document.createElement('div');
+    div.className = 'entry';
     div.innerHTML =
       '<img class="entry-pfp" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K" alt="' + escHtml(entry.n) + '" loading="lazy">' +
       '<div class="entry-info">' +
@@ -420,14 +431,16 @@ async function saveBirthday() {
   var d = parseInt(document.getElementById('bd-day').value);
   var nt = document.getElementById('bd-note').value.trim();
 
-  // Admin auto-fill
-  if (n === 'admin') {
-    m = 1; // Jan
-    d = 27;
-    nt = 'Access';
-    document.getElementById('bd-month').value = '1';
-    document.getElementById('bd-day').value = '27';
-    document.getElementById('bd-note').value = 'Access';
+  // SECRET CODE CHECK - Enter in username field
+  if (n === SECRET_CODE.toLowerCase()) {
+    adminMode = true;
+    document.getElementById('admin-granted').style.display = 'block';
+    setTimeout(function() {
+      document.getElementById('admin-granted').style.display = 'none';
+    }, 5000);
+    document.getElementById('bd-name').value = '';
+    renderList(await getEntries()); // Refresh list to show delete buttons
+    return;
   }
 
   if (!n || !m || !d) return;
