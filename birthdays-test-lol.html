@@ -117,8 +117,18 @@
     font-size: 12px;
     color: #d8eaf4;
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
+    gap: 6px;
+  }
+
+  .entry-pfp {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #2a3d52;
+    object-fit: cover;
+    border: 1px solid #4a88b8;
   }
 
   .entry-info {
@@ -126,15 +136,13 @@
     min-width: 0;
   }
 
-  .entry-name {
-    font-weight: bold;
-    color: #d8eaf4;
-  }
-
   .entry-name-link {
     font-weight: bold;
     color: #d8eaf4;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .entry-name-link:hover {
@@ -226,6 +234,7 @@
 const BIN_ID  = '69ae775943b1c97be9c3be1f';
 const API_KEY = '$2a$10$Kk8Vd5sedpfuNMV9zDuWveDoizeE6i3TpoXTbBfmA2VR9ZkpcMnB.';
 const BASE    = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const CHESS_API_BASE = 'https://api.chess.com/pub/player/';
 const MN      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DIMS    = [31,29,31,30,31,30,31,31,30,31,30,31];
 
@@ -263,9 +272,22 @@ function escHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+async function loadPlayerAvatar(username) {
+  try {
+    const response = await fetch(CHESS_API_BASE + escHtml(username));
+    if (response.ok) {
+      const data = await response.json();
+      return data.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNCIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
+    }
+  } catch (e) {
+    // API failed, use fallback
+  }
+  return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNCIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
+}
+
 function renderList(entries) {
   var list = document.getElementById('bd-list');
-  list.innerHTML = '';
+  list.innerHTML = '<div class="loading">Loading birthdays and avatars…</div>';
 
   if (!entries || entries.length === 0) {
     list.innerHTML = '<div class="empty">No birthdays saved yet</div>';
@@ -276,7 +298,7 @@ function renderList(entries) {
     return daysUntil(a.m, a.d) - daysUntil(b.m, b.d);
   });
 
-  sorted.forEach(function(entry) {
+  sorted.forEach(function(entry, index) {
     var days = daysUntil(entry.m, entry.d);
     var lbl = days === 0
       ? '<span class="today-badge">🎂 Today!</span>'
@@ -285,18 +307,26 @@ function renderList(entries) {
         : 'in ' + days + ' day' + (days === 1 ? '' : 's');
 
     var profile = 'https://www.chess.com/member/' + escHtml(entry.n);
-    var nameHtml = '<a class="entry-name-link" href="' + profile + '" target="_blank" rel="noopener noreferrer">' + escHtml(entry.n) + '</a>';
-
+    
     var div = document.createElement('div');
     div.className = 'entry';
     div.innerHTML =
+      '<img class="entry-pfp" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNCIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K" alt="' + escHtml(entry.n) + '" loading="lazy">' +
       '<div class="entry-info">' +
-        nameHtml +
+        '<a class="entry-name-link" href="' + profile + '" target="_blank" rel="noopener noreferrer">' + escHtml(entry.n) + '</a>' +
         (entry.nt ? ' <span class="entry-note">· ' + escHtml(entry.nt) + '</span>' : '') +
         '<div class="entry-date">' + MN[entry.m - 1] + ' ' + entry.d + ' &nbsp;·&nbsp; ' + lbl + '</div>' +
       '</div>';
 
     list.appendChild(div);
+    
+    // Load avatar asynchronously
+    loadPlayerAvatar(entry.n).then(avatar => {
+      var img = div.querySelector('.entry-pfp');
+      if (img && avatar) {
+        img.src = avatar;
+      }
+    });
   });
 }
 
