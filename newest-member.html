@@ -18,12 +18,12 @@
 
   .member-card {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
     background: #1a2433;
     border-left: 2px solid #4a88b8;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     position: relative;
   }
 
@@ -39,6 +39,12 @@
     background: rgba(232,132,58,0.18);
     color: #e8843a;
     border: 1px solid rgba(232,132,58,0.35);
+  }
+
+  .top-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .avatar-wrap {
@@ -88,7 +94,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
 
   .username {
@@ -162,14 +168,22 @@
     letter-spacing: 0.5px;
   }
 
+  .joined-row {
+    font-size: 10px;
+    color: #7a9aaa;
+    font-style: italic;
+    padding-top: 4px;
+    border-top: 1px solid #2a3d52;
+  }
+
   .skeleton {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
     background: #1a2433;
     border-left: 2px solid #2a3d52;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     opacity: 0.5;
     animation: shimmer 1.5s ease-in-out infinite;
   }
@@ -181,7 +195,6 @@
     height: 40px;
     border-radius: 50%;
     background: #2a3d52;
-    flex-shrink: 0;
   }
 
   .skel-lines { flex: 1; }
@@ -232,6 +245,19 @@ const RATING_KEYS = [
 
 const RANK_LABELS = ['Newest', '2nd', '3rd', '4th'];
 
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const diffMinutes = Math.round(diffMs / 60000);
+  const diffHours = Math.round(diffMs / 3600000);
+  const diffDays = Math.round(diffMs / 86400000);
+  
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  return `${diffDays} days ago`;
+}
+
 function getBestRating(stats) {
   let best = 0, icon = '♟', label = '';
   for (const [key, ic, lbl] of RATING_KEYS) {
@@ -275,41 +301,45 @@ async function load() {
         ]);
         const profile = await pRes.json();
         const stats   = await sRes.json();
-        return { username: m.username, profile, stats, rank: i };
+        return { username: m.username, profile, stats, joined: m.joined, rank: i };
       } catch {
-        return { username: m.username, profile: {}, stats: {}, rank: i };
+        return { username: m.username, profile: {}, stats: {}, joined: Date.now(), rank: i };
       }
     }));
 
-    root.innerHTML = details.map(({ username, profile, stats, rank }) => {
+    root.innerHTML = details.map(({ username, profile, stats, joined, rank }) => {
       const avatar  = profile.avatar || '';
       const rating  = getBestRating(stats);
       const url     = `https://www.chess.com/member/${username}`;
+      const joinedText = formatTimeAgo(joined);
       const imgTag  = avatar
         ? `<img class="avatar" src="${avatar}" alt="${username}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="avatar" style="display:none;align-items:center;justify-content:center;font-size:18px;color:#7a9aaa;">♟</div>`
         : `<div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:18px;color:#7a9aaa;">♟</div>`;
 
       return `
         <div class="member-card">
-          <div class="avatar-wrap">
-            ${imgTag}
-            ${rank === 0 ? '<div class="new-badge"></div>' : ''}
-          </div>
-          <div class="info">
-            <div class="username-row">
-              <a class="username" href="${url}" target="_blank">${username}</a>
-              <span class="rank-badge">${RANK_LABELS[rank]}</span>
+          <div class="top-row">
+            <div class="avatar-wrap">
+              ${imgTag}
+              ${rank === 0 ? '<div class="new-badge"></div>' : ''}
             </div>
-            <div class="stats-row">
-              ${rating ? `
-                <div class="rating-pill">
-                  <span class="rating-icon">${rating.icon}</span>
-                  <span class="rating-val">${rating.value}</span>
-                  <span class="rating-label">${rating.label}</span>
-                </div>` : `<span class="rating-label" style="font-style:italic;">Unrated</span>`
-              }
+            <div class="info">
+              <div class="username-row">
+                <a class="username" href="${url}" target="_blank">${username}</a>
+                <span class="rank-badge">${RANK_LABELS[rank]}</span>
+              </div>
+              <div class="stats-row">
+                ${rating ? `
+                  <div class="rating-pill">
+                    <span class="rating-icon">${rating.icon}</span>
+                    <span class="rating-val">${rating.value}</span>
+                    <span class="rating-label">${rating.label}</span>
+                  </div>` : `<span class="rating-label" style="font-style:italic;">Unrated</span>`
+                }
+              </div>
             </div>
           </div>
+          <div class="joined-row">Joined ${joinedText}</div>
         </div>
       `;
     }).join('');
