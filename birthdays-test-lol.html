@@ -86,9 +86,10 @@
   }
 
   .list-wrap {
-    max-height: 320px;
+    max-height: 400px;
     overflow-y: auto;
     padding-right: 2px;
+    margin-bottom: 10px;
   }
 
   .list-wrap::-webkit-scrollbar {
@@ -97,6 +98,7 @@
 
   .list-wrap::-webkit-scrollbar-track {
     background: #111820;
+    border-radius: 3px;
   }
 
   .list-wrap::-webkit-scrollbar-thumb {
@@ -165,7 +167,7 @@
     font-size: 12px;
     color: #7a9aaa;
     text-align: center;
-    padding: 6px;
+    padding: 20px 6px;
     font-style: italic;
   }
 
@@ -173,7 +175,7 @@
     font-size: 11px;
     color: #7a9aaa;
     text-align: center;
-    padding: 6px;
+    padding: 20px 6px;
   }
 
   .credits {
@@ -218,7 +220,7 @@
 <button class="btn" id="save-btn" onclick="saveBirthday()">Save Birthday</button>
 
 <div class="confirm" id="bd-confirm">✅ Saved!</div>
-<div class="error-msg" id="bd-error">❌ Error saving. Try again.</div>
+<div class="error-msg" id="bd-error">❌ Username already exists!</div>
 
 <div class="list-wrap">
   <div class="list" id="bd-list">
@@ -279,9 +281,7 @@ async function loadPlayerAvatar(username) {
       const data = await response.json();
       return data.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
     }
-  } catch (e) {
-    // API failed, use fallback
-  }
+  } catch (e) {}
   return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
 }
 
@@ -298,7 +298,7 @@ function renderList(entries) {
     return daysUntil(a.m, a.d) - daysUntil(b.m, b.d);
   });
 
-  sorted.forEach(function(entry, index) {
+  sorted.forEach(function(entry) {
     var days = daysUntil(entry.m, entry.d);
     var lbl = days === 0
       ? '<span class="today-badge">🎂 Today!</span>'
@@ -320,12 +320,9 @@ function renderList(entries) {
 
     list.appendChild(div);
     
-    // Load avatar asynchronously
     loadPlayerAvatar(entry.n).then(avatar => {
       var img = div.querySelector('.entry-pfp');
-      if (img && avatar) {
-        img.src = avatar;
-      }
+      if (img && avatar) img.src = avatar;
     });
   });
 }
@@ -358,7 +355,7 @@ async function loadBirthdays() {
 }
 
 async function saveBirthday() {
-  var n = document.getElementById('bd-name').value.trim();
+  var n = document.getElementById('bd-name').value.trim().toLowerCase();
   var m = parseInt(document.getElementById('bd-month').value);
   var d = parseInt(document.getElementById('bd-day').value);
   var nt = document.getElementById('bd-note').value.trim();
@@ -369,12 +366,30 @@ async function saveBirthday() {
   btn.disabled = true;
   btn.textContent = 'Saving…';
   document.getElementById('bd-error').style.display = 'none';
+  document.getElementById('bd-confirm').style.display = 'none';
 
   try {
     var entries = await getEntries();
+    
+    // Check for duplicate username (case-insensitive)
+    var duplicate = entries.find(function(entry) {
+      return entry.n.toLowerCase() === n;
+    });
+    
+    if (duplicate) {
+      document.getElementById('bd-error').textContent = '❌ Username "' + escHtml(n) + '" already exists!';
+      document.getElementById('bd-error').style.display = 'block';
+      setTimeout(function() {
+        document.getElementById('bd-error').style.display = 'none';
+      }, 3000);
+      btn.disabled = false;
+      btn.textContent = 'Save Birthday';
+      return;
+    }
+
     entries.push({
       id: Date.now().toString(),
-      n: n,
+      n: document.getElementById('bd-name').value.trim(), // Store original case
       m: m,
       d: d,
       nt: nt
@@ -395,10 +410,10 @@ async function saveBirthday() {
 
     renderList(entries);
   } catch (e) {
-    var er = document.getElementById('bd-error');
-    er.style.display = 'block';
+    document.getElementById('bd-error').textContent = '❌ Error saving. Try again.';
+    document.getElementById('bd-error').style.display = 'block';
     setTimeout(function() {
-      er.style.display = 'none';
+      document.getElementById('bd-error').style.display = 'none';
     }, 3000);
   }
 
