@@ -85,29 +85,6 @@
     display: none;
   }
 
-  .list-wrap {
-    max-height: 320px;
-    overflow-y: auto;
-    padding-right: 2px;
-  }
-
-  .list-wrap::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .list-wrap::-webkit-scrollbar-track {
-    background: #111820;
-  }
-
-  .list-wrap::-webkit-scrollbar-thumb {
-    background: #2a3d52;
-    border-radius: 3px;
-  }
-
-  .list-wrap::-webkit-scrollbar-thumb:hover {
-    background: #4a88b8;
-  }
-
   .entry {
     padding: 6px 8px;
     margin-bottom: 4px;
@@ -151,6 +128,19 @@
     font-size: 11px;
     color: #7a9aaa;
     margin-top: 2px;
+  }
+
+  .entry-del {
+    color: #7a9aaa;
+    cursor: pointer;
+    font-size: 14px;
+    padding-left: 6px;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .entry-del:hover {
+    color: #e8843a;
   }
 
   .empty {
@@ -213,10 +203,8 @@
 <div class="confirm" id="bd-confirm">✅ Saved!</div>
 <div class="error-msg" id="bd-error">❌ Error saving. Try again.</div>
 
-<div class="list-wrap">
-  <div class="list" id="bd-list">
-    <div class="loading">Loading birthdays…</div>
-  </div>
+<div class="list" id="bd-list">
+  <div class="loading">Loading birthdays…</div>
 </div>
 
 <div class="credits">
@@ -297,7 +285,8 @@ function renderList(entries) {
         nameHtml +
         (entry.nt ? ' <span class="entry-note">· ' + escHtml(entry.nt) + '</span>' : '') +
         '<div class="entry-date">' + MN[entry.m - 1] + ' ' + entry.d + ' &nbsp;·&nbsp; ' + lbl + '</div>' +
-      '</div>';
+      '</div>' +
+      '<span class="entry-del" onclick="deleteEntry(\'' + entry.id + '\')">×</span>';
 
     list.appendChild(div);
   });
@@ -380,6 +369,17 @@ async function saveBirthday() {
 
   btn.disabled = false;
   btn.textContent = 'Save Birthday';
+}
+
+async function deleteEntry(id) {
+  try {
+    var entries = await getEntries();
+    entries = entries.filter(function(e) {
+      return e.id !== id;
+    });
+    await setEntries(entries);
+    renderList(entries);
+  } catch (e) {}
 }
 
 loadBirthdays();
