@@ -226,10 +226,46 @@
 <body>
 
 <div id="root">
-  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
-  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
-  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
-  <div class="skeleton"><div class="skel-avatar"></div><div class="skel-lines"><div class="skel-line long"></div><div class="skel-line short"></div></div></div>
+  <div class="skeleton">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="skel-avatar"></div>
+      <div style="flex:1;">
+        <div class="skel-line long"></div>
+        <div class="skel-line short" style="margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="skel-line short" style="width:40%;"></div>
+  </div>
+  <div class="skeleton">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="skel-avatar"></div>
+      <div style="flex:1;">
+        <div class="skel-line long"></div>
+        <div class="skel-line short" style="margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="skel-line short" style="width:40%;"></div>
+  </div>
+  <div class="skeleton">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="skel-avatar"></div>
+      <div style="flex:1;">
+        <div class="skel-line long"></div>
+        <div class="skel-line short" style="margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="skel-line short" style="width:40%;"></div>
+  </div>
+  <div class="skeleton">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="skel-avatar"></div>
+      <div style="flex:1;">
+        <div class="skel-line long"></div>
+        <div class="skel-line short" style="margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="skel-line short" style="width:40%;"></div>
+  </div>
 </div>
 
 <script>
@@ -246,8 +282,10 @@ const RATING_KEYS = [
 const RANK_LABELS = ['Newest', '2nd', '3rd', '4th'];
 
 function formatTimeAgo(timestamp) {
+  // Convert seconds to milliseconds (Chess.com uses seconds)
+  const joinedMs = timestamp * 1000;
   const now = Date.now();
-  const diffMs = now - timestamp;
+  const diffMs = now - joinedMs;
   const diffMinutes = Math.round(diffMs / 60000);
   const diffHours = Math.round(diffMs / 3600000);
   const diffDays = Math.round(diffMs / 86400000);
@@ -303,7 +341,7 @@ async function load() {
         const stats   = await sRes.json();
         return { username: m.username, profile, stats, joined: m.joined, rank: i };
       } catch {
-        return { username: m.username, profile: {}, stats: {}, joined: Date.now(), rank: i };
+        return { username: m.username, profile: {}, stats: {}, joined: Date.now() / 1000, rank: i };
       }
     }));
 
