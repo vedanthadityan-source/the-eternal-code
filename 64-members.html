@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" c"width=device-width, initial-scale=1.0" />
+<title>Masters of 64 Squares – Newest Members</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: #050712;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #e9faff;
+    overflow: hidden;
+  }
+
+  .shell {
+    width: 100%;
+    height: 100vh;
+    background: radial-gradient(circle at 0 0, #092633 0, #050712 55%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .panel {
+    width: 320px;
+    background: #06091a;
+    border-radius: 18px;
+    padding: 10px 10px 12px;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(0,255,255,0.2),
+      0 0 12px rgba(0,255,255,0.25);
+  }
+
+  /* cyan neon top edge like screenshot */
+  .panel::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    right: -1px;
+    top: -1px;
+    height: 9px;
+    border-radius: 18px 18px 0 0;
+    background:
+      linear-gradient(to right, #03121b 0, #00f6ff 20%, #00f6ff 80%, #03121b 100%);
+  }
+
+  .panel-header {
+    padding: 8px 4px 6px;
+    text-align: left;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #48f8ff;
+    opacity: 0.9;
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: #7ad9ff;
+    opacity: 0.75;
+  }
+
+  #root {
+    margin-top: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+
+  /* customize scrollbar a bit */
+  #root::-webkit-scrollbar {
+    width: 4px;
+  }
+  #root::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #root::-webkit-scrollbar-thumb {
+    background: #00f6ff;
+    border-radius: 4px;
+  }
+
+  .member-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 7px;
+    margin-bottom: 5px;
+    background: linear-gradient(120deg, #060a1c 0, #050814 45%, #02040b 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(0,255,255,0.18);
+    box-shadow: 0 0 8px rgba(0,255,255,0.21);
+    position: relative;
+  }
+
+  .member-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .member-card:first-child {
+    border-color: #00f6ff;
+    box-shadow: 0 0 12px rgba(0,246,255,0.65);
+  }
+
+  .avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid #1a3045;
+    object-fit: cover;
+    display: block;
+    background: #050712;
+  }
+
+  .member-card:first-child .avatar {
+    width: 40px;
+    height: 40px;
+    border-color: #00f6ff;
+  }
+
+  .new-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1.5px solid #050712;
+    background: #00f6ff;
+    box-shadow: 0 0 6px rgba(0,246,255,0.9);
+    animation: pulse-cyan 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse-cyan {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.85); opacity: 0.6; }
+  }
+
+  .info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .username-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+
+  .username {
+    font-size: 12px;
+    font-weight: 600;
+    color: #e9faff;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+  }
+
+  .username:hover { color: #74faff; }
+
+  .rank-badge {
+    font-size: 8px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    padding: 1px 4px;
+    border-radius: 999px;
+    color: #0d1d2d;
+    background: #00f6ff;
+  }
+
+  .member-card:first-child .rank-badge {
+    background: #050712;
+    color: #6cfaff;
+    border: 1px solid #00f6ff;
+  }
+
+  .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .rating-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px 2px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 0 0, #0a3048 0, #050712 60%);
+    border: 1px solid rgba(0,246,255,0.4);
+  }
+
+  .rating-icon {
+    font-size: 10px;
+  }
+
+  .rating-val {
+    font-size: 11px;
+    font-weight: 700;
+    color: #00f6ff;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+  }
+
+  .rating-label {
+    font-size: 9px;
+    color: #8bdfff;
+    letter-spacing: 0.4px;
+  }
+
+  .rating-label.muted {
+    font-style: italic;
+    color: #5b7c9a;
+  }
+
+  /* skeleton while loading */
+  .skeleton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 7px;
+    margin-bottom: 5px;
+    border-radius: 10px;
+    background: linear-gradient(120deg, #060a1c 0, #050814 45%, #02040b 100%);
+    border: 1px solid rgba(0,255,255,0.12);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .skeleton:last-child { margin-bottom: 0; }
+
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg,
+      transparent 0%,
+      rgba(0,246,255,0.08) 40%,
+      rgba(0,246,255,0.15) 60%,
+      transparent 100%);
+    transform: translateX(-100%);
+    animation: shimmer 1.4s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .skel-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #11172d;
+    flex-shrink: 0;
+  }
+
+  .skel-lines { flex: 1; }
+
+  .skel-line {
+    height: 7px;
+    background: #11172d;
+    border-radius: 999px;
+    margin-bottom: 5px;
+  }
+
+  .skel-line.long  { width: 80%; }
+  .skel-line.short { width: 55%; }
+
+  .error-msg {
+    font-size: 11px;
+    color: #8bdfff;
+    text-align: center;
+    padding: 8px 4px 4px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Newest Members</div>
+      <div class="panel-sub">Masters of 64 Squares</div>
+    </div>
+
+    <div id="root">
+      <div class="skeleton">
+        <div class="skel-avatar"></div>
+        <div class="skel-lines">
+          <div class="skel-line long"></div>
+          <div class="skel-line short"></div>
+        </div>
+      </div>
+      <div class="skeleton">
+        <div class="skel-avatar"></div>
+        <div class="skel-lines">
+          <div class="skel-line long"></div>
+          <div class="skel-line short"></div>
+        </div>
+      </div>
+      <div class="skeleton">
+        <div class="skel-avatar"></div>
+        <div class="skel-lines">
+          <div class="skel-line long"></div>
+          <div class="skel-line short"></div>
+        </div>
+      </div>
+      <div class="skeleton">
+        <div class="skel-avatar"></div>
+        <div class="skel-lines">
+          <div class="skel-line long"></div>
+          <div class="skel-line short"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CLUB  = 'masters-of-64-squares';
+const API   = 'https://api.chess.com/pub';
+const COUNT = 4;
+
+const RATING_KEYS = [
+  ['chess_blitz',  '⚡', 'Blitz'],
+  ['chess_rapid',  '🕐', 'Rapid'],
+  ['chess_bullet', '🚀', 'Bullet'],
+];
+
+
+function getBestRating(stats) {
+  let best = 0, icon = '♟', label = '';
+  for (const [key, ic, lbl] of RATING_KEYS) {
+    const val = stats?.[key]?.last?.rating || stats?.[key]?.best?.rating || 0;
+    if (val > best) { best = val; icon = ic; label = lbl; }
+  }
+  return best ? { value: best, icon, label } : null;
+}
+
+async function load() {
+  const root = getElementById('root');
+  try {
+    const res  = await fetch(`${API}/club/${CLUB}/members`);
+    const data = await res.json();
+
+    const all = [
+      ...(data.weekly   || []),
+      ...(data.monthly  || []),
+      ...(data.all_time || []),
+    ];
+
+    if (!all.length) throw new Error('No members');
+
+    const seen = new Set();
+    const unique = all.filter(m => {
+      if (seen.has(m.username)) return false;
+      seen.add(m.username);
+      return true;
+    });
+
+    // newest by joined timestamp
+    unique.sort((a, b) => (b.joined || 0) - (a.joined || 0));
+    const newest = unique.slice(0, COUNT);
+
+    const details = await Promise.all(newest.map(async (m, i) => {
+      try {
+        const [pRes, sRes] = await Promise.all([
+          fetch(`${API}/player/${m.username}`),
+          fetch(`${API}/player/${m.username}/stats`),
+        ]);
+        const profile = await pRes.json();
+        const stats   = await sRes.json();
+        return { username: m.username, profile, stats, rank: i };
+      } catch {
+        return { username: m.username, profile: {}, stats: {}, rank: i };
+      }
+    }));
+
+    root = details.map(({ username, profile, stats, rank }) => {
+      const avatar  = profile.avatar || '';
+      const rating  = getBestRating(stats);
+      const url     = `https://www.chess.com/member/${username}`;
+
+      const imgTag = avatar
+        ? `<img class="avatar" src="${avatar}" alt="${username}"
+               "this.style.display='none';this.nextElementSibling.style.display='flex'" />
+           <div class="avatar" style="display:none;align-items:center;justify-content:center;font-size:16px;color:#00f6ff;">♟</div>`
+        : `<div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:16px;color:#00f6ff;">♟</div>`;
+
+      return `
+        <div class="member-card">
+          <div class="avatar-wrap">
+            ${imgTag}
+            ${rank === 0 ? '<div class="new-badge"></div>' : ''}
+          </div>
+          <div class="info">
+            <div class="username-row">
+              <a class="username" href="${url}" target="_blank" rel="noopener noreferrer">${username}</a>
+            </div>
+            <div class="stats-row">
+              ${
+                rating
+                  ? `<div class="rating-pill">
+                       <span class="rating-icon">${rating.icon}</span>
+                       <span class="rating-val">${rating.value}</span>
+                       <span class="rating-label">${rating.label}</span>
+                     </div>`
+                  : `<span class="rating-label muted">Unrated</span>`
+              }
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+    root = `<div class="error-msg">Could not load member data.</div>`;
+  }
+}
+
+load();
+</script>
+</body>
+</html>
