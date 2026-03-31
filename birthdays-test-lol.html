@@ -109,7 +109,7 @@
   }
 
   .entry {
-    padding: 6px 8px;
+    padding: 8px 10px;
     margin-bottom: 4px;
     background: #111820;
     border-left: 2px solid #4a88b8;
@@ -117,13 +117,13 @@
     font-size: 12px;
     color: #d8eaf4;
     display: flex;
-    align-items: flex-start;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
   }
 
   .entry-pfp {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     flex-shrink: 0;
     background: #2a3d52;
@@ -142,7 +142,7 @@
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
   }
 
   .entry-name-link:hover {
@@ -277,12 +277,12 @@ async function loadPlayerAvatar(username) {
     const response = await fetch(CHESS_API_BASE + escHtml(username));
     if (response.ok) {
       const data = await response.json();
-      return data.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNCIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
+      return data.avatar || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
     }
   } catch (e) {
     // API failed, use fallback
   }
-  return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNCIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
+  return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
 }
 
 function renderList(entries) {
@@ -311,7 +311,7 @@ function renderList(entries) {
     var div = document.createElement('div');
     div.className = 'entry';
     div.innerHTML =
-      '<img class="entry-pfp" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNCIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K" alt="' + escHtml(entry.n) + '" loading="lazy">' +
+      '<img class="entry-pfp" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K" alt="' + escHtml(entry.n) + '" loading="lazy">' +
       '<div class="entry-info">' +
         '<a class="entry-name-link" href="' + profile + '" target="_blank" rel="noopener noreferrer">' + escHtml(entry.n) + '</a>' +
         (entry.nt ? ' <span class="entry-note">· ' + escHtml(entry.nt) + '</span>' : '') +
