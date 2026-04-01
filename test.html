@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>The Eternal – Birthdays</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: #1a2433;
+    color: #d8eaf4;
+    font-family: Georgia, serif;
+    font-size: 12px;
+    padding: 10px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #7a9aaa;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #2a3d52;
+    padding-bottom: 7px;
+    flex-shrink: 0;
+  }
+
+  .row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  input, select {
+    background: #111820;
+    border: 1px solid #2a3d52;
+    color: #d8eaf4;
+    padding: 5px 7px;
+    font-size: 12px;
+    border-radius: 3px;
+    font-family: Georgia, serif;
+    outline: none;
+    width: 100%;
+  }
+
+  select { padding: 5px 2px; }
+
+  .btn {
+    width: 100%;
+    background: linear-gradient(135deg, #2a6090, #1a4060);
+    color: #d8eaf4;
+    border: 1px solid #4a88b8;
+    padding: 7px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: Georgia, serif;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+  }
+
+  .btn:hover {
+    background: linear-gradient(135deg, #3a70a0, #2a5070);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #d84a3a, #a83020) !important;
+    border-color: #e86a5a !important;
+    font-size: 10px !important;
+    padding: 4px 6px !important;
+    margin-left: auto;
+    width: auto !important;
+    flex-shrink: 0;
+  }
+
+  .btn-delete:hover {
+    background: linear-gradient(135deg, #e85a4a, #b84030) !important;
+  }
+
+  .confirm {
+    font-size: 11px;
+    color: #5ab870;
+    text-align: center;
+    margin-bottom: 6px;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  .admin-granted {
+    font-size: 11px;
+    color: #5ab870;
+    text-align: center;
+    margin-bottom: 6px;
+    padding: 6px;
+    background: rgba(90, 184, 112, 0.1);
+    border: 1px solid #5ab870;
+    border-radius: 3px;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  .error-msg {
+    font-size: 11px;
+    color: #e8843a;
+    text-align: center;
+    margin-bottom: 6px;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  .list-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 2px;
+    margin-bottom: 10px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .list-wrap::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .list-wrap::-webkit-scrollbar-track {
+    background: #111820;
+    border-radius: 3px;
+  }
+
+  .list-wrap::-webkit-scrollbar-thumb {
+    background: #2a3d52;
+    border-radius: 3px;
+  }
+
+  .list-wrap::-webkit-scrollbar-thumb:hover {
+    background: #4a88b8;
+  }
+
+  .list {
+    min-height: fit-content;
+  }
+
+  .entry {
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    background: #111820;
+    border-left: 2px solid #4a88b8;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #d8eaf4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+
+  .entry-pfp {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #2a3d52;
+    object-fit: cover;
+    border: 1px solid #4a88b8;
+  }
+
+  .entry-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .entry-name-link {
+    font-weight: 500;
+    color: #d8eaf4;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .entry-name-link:hover {
+    color: #9ec8e3;
+    text-decoration: underline;
+  }
+
+  .entry-note {
+    color: #9ab8cc;
+    font-size: 11px;
+  }
+
+  .entry-date {
+    font-size: 11px;
+    color: #7a9aaa;
+    margin-top: 2px;
+  }
+
+  .empty {
+    font-size: 12px;
+    color: #7a9aaa;
+    text-align: center;
+    padding: 20px 6px;
+    font-style: italic;
+  }
+
+  .loading {
+    font-size: 11px;
+    color: #7a9aaa;
+    text-align: center;
+    padding: 20px 6px;
+  }
+
+  .credits {
+    margin-top: 8px;
+    font-size: 10px;
+    color: #7a9aaa;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .credits a {
+    color: #7a9aaa;
+  }
+
+  .today-badge {
+    color: #5ab870;
+    font-weight: bold;
+  }
+
+  .soon-badge {
+    color: #e8843a;
+  }
+</style>
+</head>
+<body>
+<div class="header">🎂 Next Birthdays</div>
+
+<div class="row">
+  <input id="bd-name" placeholder="Username" style="flex:2;" />
+  <select id="bd-month" style="flex:1;" onchange="buildDays()">
+    <option value="">Mo</option>
+    <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+    <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+    <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+    <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+  </select>
+  <select id="bd-day" style="flex:1;">
+    <option value="">Day</option>
+  </select>
+</div>
+
+<input id="bd-note" placeholder="Note (optional)" style="margin-bottom:6px;" />
+<button class="btn" id="save-btn" onclick="saveBirthday()">Save Birthday</button>
+
+<div class="admin-granted" id="admin-granted">🔐 Admin Access Granted</div>
+<div class="confirm" id="bd-confirm">✅ Saved!</div>
+<div class="error-msg" id="bd-error">❌ Username already exists!</div>
+
+<div class="list-wrap">
+  <div class="list" id="bd-list">
+    <div class="loading">Loading birthdays…</div>
+  </div>
+</div>
+
+<div class="credits">
+  Credits to <a href="https://www.chess.com/member/takieddinegoumri" target="_blank" rel="noopener noreferrer">TakieddineGOUMRI</a> for the idea
+</div>
+
+<script>
+const BIN_ID  = '69ae775943b1c97be9c3be1f';
+const API_KEY = '$2a$10$Kk8Vd5sedpfuNMV9zDuWveDoizeE6i3TpoXTbBfmA2VR9ZkpcMnB.';
+const BASE    = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const CHESS_API_BASE = 'https://api.chess.com/pub/player/';
+const SECRET_CODE = 'vedrish2026';
+const HIDDEN_MONTH_VALUE = '13';
+const HIDDEN_MONTH_LABEL = 'V';
+const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','V'];
+const DIMS = [31,29,31,30,31,30,31,31,30,31,30,31,32];
+
+let adminMode = false;
+let secretArmed = false;
+
+function buildDays() {
+  var m = parseInt(document.getElementById('bd-month').value);
+  var sel = document.getElementById('bd-day');
+  while (sel.options.length) sel.remove(0);
+
+  var o = document.createElement('option');
+  o.value = '';
+  o.textContent = 'Day';
+  sel.appendChild(o);
+
+  if (m > 0) {
+    for (var i = 1; i <= DIMS[m - 1]; i++) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      sel.appendChild(opt);
+    }
+  }
+}
+
+function buildSecretMonth() {
+  var monthSel = document.getElementById('bd-month');
+  if (monthSel.querySelector('option[value="' + HIDDEN_MONTH_VALUE + '"]')) return;
+
+  var opt = document.createElement('option');
+  opt.value = HIDDEN_MONTH_VALUE;
+  opt.textContent = HIDDEN_MONTH_LABEL;
+  monthSel.appendChild(opt);
+}
+
+function daysUntil(m, d) {
+  var now = new Date();
+  var y = now.getFullYear();
+  var t = new Date(y, m - 1, d);
+  if (t - now < -86400000) t = new Date(y + 1, m - 1, d);
+  return Math.round((t - now) / 86400000);
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function loadPlayerAvatar(username) {
+  try {
+    const response = await fetch(CHESS_API_BASE + escHtml(username));
+    if (response.ok) {
+      const data = await response.json();
+      return data.avatar || fallbackAvatar();
+    }
+  } catch (e) {}
+  return fallbackAvatar();
+}
+
+function fallbackAvatar() {
+  return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
+}
+
+function renderList(entries) {
+  var list = document.getElementById('bd-list');
+
+  if (!entries || entries.length === 0) {
+    list.innerHTML = '<div class="empty">No birthdays saved yet</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+
+  var sorted = entries.slice().sort(function(a, b) {
+    return daysUntil(a.m, a.d) - daysUntil(b.m, b.d);
+  });
+
+  sorted.forEach(function(entry) {
+    var days = daysUntil(entry.m, entry.d);
+    var lbl = days === 0
+      ? '<span class="today-badge">🎂 Today!</span>'
+      : days <= 7
+        ? '<span class="soon-badge">in ' + days + ' day' + (days === 1 ? '' : 's') + '</span>'
+        : 'in ' + days + ' day' + (days === 1 ? '' : 's');
+
+    var profile = 'https://www.chess.com/member/' + escHtml(entry.n);
+    var deleteBtn = adminMode
+      ? '<button class="btn btn-delete" onclick="deleteEntry(\\'' + entry.id + '\\')">🗑️</button>'
+      : '';
+
+    var monthText = entry.m === 13 ? 'V' : MN[entry.m - 1];
+
+    var div = document.createElement('div');
+    div.className = 'entry';
+    div.innerHTML =
+      '<img class="entry-pfp" src="' + fallbackAvatar() + '" alt="' + escHtml(entry.n) + '" loading="lazy">' +
+      '<div class="entry-info">' +
+        '<a class="entry-name-link" href="' + profile + '" target="_blank" rel="noopener noreferrer">' + escHtml(entry.n) + '</a>' +
+        (entry.nt ? ' <span class="entry-note">· ' + escHtml(entry.nt) + '</span>' : '') +
+        '<div class="entry-date">' + monthText + ' ' + entry.d + ' &nbsp;·&nbsp; ' + lbl + '</div>' +
+      '</div>' +
+      deleteBtn;
+
+    list.appendChild(div);
+
+    loadPlayerAvatar(entry.n).then(avatar => {
+      var img = div.querySelector('.entry-pfp');
+      if (img && avatar) img.src = avatar;
+    });
+  });
+}
+
+async function deleteEntry(entryId) {
+  if (!confirm('Delete this birthday?')) return;
+
+  try {
+    var entries = await getEntries();
+    entries = entries.filter(function(entry) {
+      return entry.id !== entryId;
+    });
+    await setEntries(entries);
+    renderList(entries);
+  } catch (e) {
+    alert('Error deleting entry');
+  }
+}
+
+async function getEntries() {
+  var res = await fetch(BASE + '/latest', {
+    headers: { 'X-Master-Key': API_KEY }
+  });
+  var data = await res.json();
+  return (data.record && data.record.entries) ? data.record.entries : [];
+}
+
+async function setEntries(entries) {
+  await fetch(BASE, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': API_KEY
+    },
+    body: JSON.stringify({ entries: entries })
+  });
+}
+
+async function loadBirthdays() {
+  const list = document.getElementById('bd-list');
+  list.innerHTML = '<div class="loading">Loading birthdays…</div>';
+
+  try {
+    const entries = await getEntries();
+    renderList(entries);
+  } catch (e) {
+    list.innerHTML = '<div class="empty">Could not load birthdays.</div>';
+  }
+}
+
+async function saveBirthday() {
+  var rawName = document.getElementById('bd-name').value.trim();
+  var n = rawName.toLowerCase();
+  var m = parseInt(document.getElementById('bd-month').value);
+  var d = parseInt(document.getElementById('bd-day').value);
+  var nt = document.getElementById('bd-note').value.trim();
+
+  if (n === SECRET_CODE.toLowerCase()) {
+    secretArmed = true;
+    document.getElementById('bd-name').value = '';
+    document.getElementById('bd-name').focus();
+    document.getElementById('bd-error').style.display = 'none';
+    document.getElementById('bd-confirm').textContent = '✅ Saved!';
+    document.getElementById('bd-confirm').style.display = 'block';
+    setTimeout(function() {
+      document.getElementById('bd-confirm').style.display = 'none';
+    }, 2000);
+    buildSecretMonth();
+    return;
+  }
+
+  if (!n || !m || !d) return;
+
+  var btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  document.getElementById('bd-error').style.display = 'none';
+  document.getElementById('bd-confirm').style.display = 'none';
+
+  try {
+    var entries = await getEntries();
+
+    var duplicate = entries.find(function(entry) {
+      return entry.n.toLowerCase() === n;
+    });
+
+    if (duplicate) {
+      document.getElementById('bd-error').textContent = '❌ Username "' + escHtml(n) + '" already exists!';
+      document.getElementById('bd-error').style.display = 'block';
+      setTimeout(function() {
+        document.getElementById('bd-error').style.display = 'none';
+      }, 3000);
+      btn.disabled = false;
+      btn.textContent = 'Save Birthday';
+      return;
+    }
+
+    entries.push({
+      id: Date.now().toString(),
+      n: rawName,
+      m: m,
+      d: d,
+      nt: nt
+    });
+
+    await setEntries(entries);
+
+    document.getElementById('bd-name').value = '';
+    document.getElementById('bd-note').value = '';
+    document.getElementById('bd-month').value = '';
+    document.getElementById('bd-day').innerHTML = '<option value="">Day</option>';
+    buildDays();
+
+    var c = document.getElementById('bd-confirm');
+    c.style.display = 'block';
+    setTimeout(function() {
+      c.style.display = 'none';
+    }, 2500);
+
+    renderList(entries);
+  } catch (e) {
+    document.getElementById('bd-error').textContent = '❌ Error saving. Try again.';
+    document.getElementById('bd-error').style.display = 'block';
+    setTimeout(function() {
+      document.getElementById('bd-error').style.display = 'none';
+    }, 3000);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save Birthday';
+}
+
+document.getElementById('bd-month').addEventListener('change', function() {
+  if (secretArmed && this.value === HIDDEN_MONTH_VALUE) {
+    document.getElementById('bd-day').innerHTML = '<option value="">Day</option>';
+    for (var i = 1; i <= 32; i++) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      document.getElementById('bd-day').appendChild(opt);
+    }
+    return;
+  }
+
+  if (secretArmed) {
+    if (this.value === HIDDEN_MONTH_VALUE) return;
+    buildDays();
+    return;
+  }
+
+  buildDays();
+});
+
+document.getElementById('bd-day').addEventListener('change', function() {
+  if (secretArmed) {
+    var monthVal = document.getElementById('bd-month').value;
+    var dayVal = this.value;
+    if (monthVal === HIDDEN_MONTH_VALUE && dayVal === '32') {
+      adminMode = true;
+      document.getElementById('admin-granted').style.display = 'block';
+      setTimeout(function() {
+        document.getElementById('admin-granted').style.display = 'none';
+      }, 5000);
+      loadBirthdays();
+    }
+  }
+});
+
+loadBirthdays();
+</script>
+</body>
+</html>
