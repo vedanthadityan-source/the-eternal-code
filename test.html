@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -193,7 +193,7 @@
     gap: 6px;
   }
 
-  .entry-name-link:hover {
+  .entry-name-link:hover.entry-name-link:hover {
     color: #9ec8e3;
     text-decoration: underline;
   }
@@ -305,7 +305,8 @@ function buildDays() {
   sel.appendChild(o);
 
   if (m > 0) {
-    for (var i = 1; i <= DIMS[m - 1]; i++) {
+    var maxDays = DIMS[m - 1];
+    for (var i = 1; i <= maxDays; i++) {
       var opt = document.createElement('option');
       opt.value = i;
       opt.textContent = i;
@@ -420,11 +421,16 @@ async function deleteEntry(entryId) {
 }
 
 async function getEntries() {
-  var res = await fetch(BASE + '/latest', {
-    headers: { 'X-Master-Key': API_KEY }
-  });
-  var data = await res.json();
-  return (data.record && data.record.entries) ? data.record.entries : [];
+  try {
+    var res = await fetch(BASE + '/latest', {
+      headers: { 'X-Master-Key': API_KEY }
+    });
+    var data = await res.json();
+    return (data.record && data.record.entries) ? data.record.entries : [];
+  } catch (e) {
+    console.error('Failed to fetch entries:', e);
+    return [];
+  }
 }
 
 async function setEntries(entries) {
@@ -446,6 +452,7 @@ async function loadBirthdays() {
     const entries = await getEntries();
     renderList(entries);
   } catch (e) {
+    console.error('Load birthdays error:', e);
     list.innerHTML = '<div class="empty">Could not load birthdays.</div>';
   }
 }
@@ -457,12 +464,12 @@ async function saveBirthday() {
   var d = parseInt(document.getElementById('bd-day').value);
   var nt = document.getElementById('bd-note').value.trim();
 
+  // Step 1: vedrish2026 in username field
   if (n === SECRET_CODE.toLowerCase()) {
     secretArmed = true;
     document.getElementById('bd-name').value = '';
     document.getElementById('bd-name').focus();
-    document.getElementById('bd-error').style.display = 'none';
-    document.getElementById('bd-confirm').textContent = '✅ Saved!';
+    document.getElementById('bd-confirm').textContent = '✅ Secret activated!';
     document.getElementById('bd-confirm').style.display = 'block';
     setTimeout(function() {
       document.getElementById('bd-confirm').style.display = 'none';
@@ -511,7 +518,7 @@ async function saveBirthday() {
     document.getElementById('bd-note').value = '';
     document.getElementById('bd-month').value = '';
     document.getElementById('bd-day').innerHTML = '<option value="">Day</option>';
-    buildDays();
+    secretArmed = false; // Reset secret state
 
     var c = document.getElementById('bd-confirm');
     c.style.display = 'block';
@@ -521,6 +528,7 @@ async function saveBirthday() {
 
     renderList(entries);
   } catch (e) {
+    console.error('Save error:', e);
     document.getElementById('bd-error').textContent = '❌ Error saving. Try again.';
     document.getElementById('bd-error').style.display = 'block';
     setTimeout(function() {
@@ -532,39 +540,39 @@ async function saveBirthday() {
   btn.textContent = 'Save Birthday';
 }
 
-document.getElementById('bd-month').addEventListener('change', function() {
-  if (secretArmed && this.value === HIDDEN_MONTH_VALUE) {
-    document.getElementById('bd-day').innerHTML = '<option value="">Day</option>';
+// Keep original onchange for month dropdown
+document.getElementById('bd-month').onchange = function() {
+  var monthVal = this.value;
+  
+  if (secretArmed && monthVal === HIDDEN_MONTH_VALUE) {
+    // Admin secret month selected - populate 32 days
+    var daySel = document.getElementById('bd-day');
+    while (daySel.options.length) daySel.remove(0);
+    var o = document.createElement('option');
+    o.value = '';
+    o.textContent = 'Day';
+    daySel.appendChild(o);
     for (var i = 1; i <= 32; i++) {
       var opt = document.createElement('option');
       opt.value = i;
       opt.textContent = i;
-      document.getElementById('bd-day').appendChild(opt);
+      daySel.appendChild(opt);
     }
     return;
   }
-
-  if (secretArmed) {
-    if (this.value === HIDDEN_MONTH_VALUE) return;
-    buildDays();
-    return;
-  }
-
+  
   buildDays();
-});
+};
 
+// Admin activation on day 32 selection
 document.getElementById('bd-day').addEventListener('change', function() {
-  if (secretArmed) {
-    var monthVal = document.getElementById('bd-month').value;
-    var dayVal = this.value;
-    if (monthVal === HIDDEN_MONTH_VALUE && dayVal === '32') {
-      adminMode = true;
-      document.getElementById('admin-granted').style.display = 'block';
-      setTimeout(function() {
-        document.getElementById('admin-granted').style.display = 'none';
-      }, 5000);
-      loadBirthdays();
-    }
+  if (secretArmed && document.getElementById('bd-month').value === HIDDEN_MONTH_VALUE && this.value === '32') {
+    adminMode = true;
+    document.getElementById('admin-granted').style.display = 'block';
+    setTimeout(function() {
+      document.getElementById('admin-granted').style.display = 'none';
+    }, 5000);
+    loadBirthdays();
   }
 });
 
