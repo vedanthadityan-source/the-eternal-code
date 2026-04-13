@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0e1c17; font-family: Georgia, serif; color: #c8ece4; padding: 14px 16px; }
+
+  .header { text-align: center; margin-bottom: 18px; }
+  .count-num { font-size: 38px; font-weight: 700; color: #5ee8c0; letter-spacing: 1px; line-height: 1; }
+  .count-label { font-size: 11px; color: #4a8c7c; font-style: italic; margin-top: 4px; letter-spacing: 0.5px; }
+
+  .track { display: flex; }
+  .line-col { display: flex; flex-direction: column; align-items: center; width: 32px; flex-shrink: 0; padding-top: 4px; }
+  .line-seg { width: 2px; flex: 1; min-height: 32px; }
+  .line-seg.filled { background: #5ee8c0; }
+  .line-seg.empty { background: #1a4a3a; }
+  .node { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #1a4a3a; background: #0e1c17; flex-shrink: 0; }
+  .node.reached { background: #5ee8c0; border-color: #5ee8c0; }
+  .node.current { background: #5ee8c0; border-color: #a0f5df; width: 16px; height: 16px; }
+
+  .milestones { flex: 1; display: flex; flex-direction: column; }
+  .milestone { display: flex; align-items: center; min-height: 48px; padding: 6px 0 6px 10px; border-bottom: 1px solid #0e2e24; }
+  .milestone:last-child { border-bottom: none; }
+  .milestone.reached { opacity: 1; }
+  .milestone.upcoming { opacity: 0.5; }
+  .milestone.current-zone { opacity: 1; }
+
+  .m-goal { font-size: 14px; font-weight: 700; color: #5ee8c0; min-width: 48px; }
+  .milestone.upcoming .m-goal { color: #2a6a5a; }
+  .m-bar-wrap { flex: 1; margin: 0 10px; height: 6px; background: #1a4a3a; border-radius: 3px; overflow: hidden; }
+  .m-bar { height: 100%; background: #5ee8c0; border-radius: 3px; }
+  .m-pct { font-size: 10px; color: #4a8c7c; min-width: 34px; text-align: right; font-style: italic; }
+  .m-check { font-size: 12px; color: #5ee8c0; min-width: 16px; text-align: center; }
+
+  .loading { text-align: center; font-size: 12px; color: #4a8c7c; font-style: italic; padding: 20px 0; }
+  .error { text-align: center; font-size: 12px; color: #4a8c7c; font-style: italic; padding: 10px 0; }
+</style>
+</head>
+<body>
+<div id="root"><div class="loading">Loading…</div></div>
+
+<script>
+async function run() {
+  const root = document.getElementById('root');
+  try {
+    const res = await fetch('https://api.chess.com/pub/club/schizzarotto-fan-club');
+    const data = await res.json();
+    const count = data.members_count || 0;
+
+    const STEP = 100;
+    const base = Math.floor(count / STEP) * STEP;
+    const goals = [];
+    for (let i = -2; i <= 5; i++) {
+      const g = base + i * STEP;
+      if (g > 0) goals.push(g);
+    }
+
+    let html = `<div class="header">
+      <div class="count-num">${count.toLocaleString()}</div>
+      <div class="count-label">members</div>
+    </div>
+    <div class="track">
+      <div class="line-col" id="linecol"></div>
+      <div class="milestones">`;
+
+    goals.forEach((g, i) => {
+      const reached = count >= g;
+      const isNext = !reached && (i === 0 || count >= goals[i - 1]);
+      const pct = reached ? 100 : Math.max(0, Math.min(99, Math.round(((count - (g - STEP)) / STEP) * 100)));
+      const barW = reached ? 100 : isNext ? pct : 0;
+      const cls = reached ? 'reached' : isNext ? 'current-zone' : 'upcoming';
+
+      html += `<div class="milestone ${cls}">
+        <span class="m-goal">${g.toLocaleString()}</span>
+        <div class="m-bar-wrap"><div class="m-bar" style="width:${barW}%"></div></div>
+        <span class="m-pct">${reached ? '' : isNext ? pct + '%' : ''}</span>
+        <span class="m-check">${reached ? '&#10003;' : ''}</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+    root.innerHTML = html;
+
+    const linecol = document.getElementById('linecol');
+    goals.forEach((g, i) => {
+      const reached = count >= g;
+      const isNext = !reached && (i === 0 || count >= goals[i - 1]);
+
+      if (i > 0) {
+        const seg = document.createElement('div');
+        seg.className = 'line-seg ' + (reached ? 'filled' : 'empty');
+        seg.style.minHeight = '36px';
+        linecol.appendChild(seg);
+      }
+
+      const node = document.createElement('div');
+      node.className = 'node' + (reached ? ' reached' : '') + (isNext ? ' current' : '');
+      linecol.appendChild(node);
+    });
+
+  } catch(e) {
+    root.innerHTML = '<div class="error">Could not load member count.</div>';
+  }
+}
+run();
+</script>
+</body>
+</html>
