@@ -33,9 +33,12 @@
 async function run() {
   const root = document.getElementById('root');
   try {
-    const res = await fetch('https://api.chess.com/pub/club/schizzarotto-fan-club');
+    const res = await fetch('https://api.chess.com/pub/club/schizzarotto-fan-club/members');
     const data = await res.json();
-    const count = data.members_count || 0;
+    const all = [...(data.weekly||[]), ...(data.monthly||[]), ...(data.all_time||[])];
+    const seen = new Set();
+    const unique = all.filter(m => seen.has(m.username) ? false : (seen.add(m.username), true));
+    const count = unique.length;
 
     const STEP = 500;
     const low = Math.floor(count / STEP) * STEP;
