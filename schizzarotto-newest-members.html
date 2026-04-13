@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Courier New', monospace; color: #c8ece4; background: #0a2623; }
+
+  .member-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: rgba(10, 38, 35, 0.85);
+    border-left: 2px solid #2a9d82;
+    margin-bottom: 8px;
+    border-radius: 0 4px 4px 0;
+  }
+  .member-card:last-child { margin-bottom: 0; }
+  .member-card.top {
+    border-left: 2px solid #5ee8c0;
+    background: rgba(10, 50, 44, 0.9);
+  }
+
+  .top-row { display: flex; align-items: center; gap: 10px; }
+
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid #1a5c4e;
+    object-fit: cover;
+    display: block;
+    background: #0a2623;
+  }
+  .member-card.top .avatar { border-color: #5ee8c0; width: 44px; height: 44px; }
+
+  .new-badge {
+    position: absolute; top: -3px; right: -3px;
+    width: 11px; height: 11px;
+    background: #5ee8c0;
+    border-radius: 50%;
+    border: 1.5px solid #0a2623;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .avatar-fallback {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid #1a5c4e;
+    background: #0a2623;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #2a9d82;
+  }
+  .member-card.top .avatar-fallback { width: 44px; height: 44px; border-color: #5ee8c0; }
+
+  .info { flex: 1; min-width: 0; }
+
+  .username-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .username {
+    font-size: 13px; font-weight: 600;
+    color: #c8ece4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-decoration: none;
+  }
+  .member-card.top .username { color: #a0f5df; }
+  .username:hover { color: #5ee8c0; }
+
+  .rank-badge {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #2a9d82;
+    background: rgba(42,157,130,0.15);
+    border: 1px solid rgba(42,157,130,0.35);
+    padding: 1px 5px; border-radius: 2px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .member-card.top .rank-badge {
+    color: #5ee8c0;
+    background: rgba(94,232,192,0.15);
+    border: 1px solid rgba(94,232,192,0.35);
+  }
+
+  .rating-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(10,38,35,0.6);
+    border: 1px solid #1a5c4e;
+    border-radius: 3px; padding: 2px 6px;
+  }
+  .rating-val { font-size: 11px; font-weight: bold; color: #5ee8c0; }
+  .rating-label { font-size: 9px; color: #4a8c7c; letter-spacing: 0.5px; }
+
+  .joined-row {
+    font-size: 10px; color: #4a8c7c;
+    font-style: italic;
+    padding-top: 4px;
+    border-top: 1px solid #0e3830;
+  }
+
+  .skeleton {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px 14px;
+    background: rgba(10,38,35,0.6);
+    border-left: 2px solid #1a5c4e;
+    margin-bottom: 8px; border-radius: 0 4px 4px 0;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  .skeleton:last-child { margin-bottom: 0; }
+  .skel-row { display: flex; align-items: center; gap: 10px; }
+  .skel-avatar { width: 40px; height: 40px; border-radius: 50%; background: #1a5c4e; }
+  .skel-line { height: 9px; background: #1a5c4e; border-radius: 3px; margin-bottom: 6px; }
+  .skel-line.long { width: 75%; }
+  .skel-line.short { width: 45%; }
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.65; }
+  }
+
+  .error-msg { font-size: 12px; color: #4a8c7c; font-style: italic; text-align: center; padding: 10px; }
+</style>
+</head>
+<body>
+
+<div id="root">
+  <div class="skeleton"><div class="skel-row"><div class="skel-avatar"></div><div style="flex:1"><div class="skel-line long"></div><div class="skel-line short"></div></div></div><div class="skel-line short" style="width:38%"></div></div>
+  <div class="skeleton"><div class="skel-row"><div class="skel-avatar"></div><div style="flex:1"><div class="skel-line long"></div><div class="skel-line short"></div></div></div><div class="skel-line short" style="width:38%"></div></div>
+  <div class="skeleton"><div class="skel-row"><div class="skel-avatar"></div><div style="flex:1"><div class="skel-line long"></div><div class="skel-line short"></div></div></div><div class="skel-line short" style="width:38%"></div></div>
+</div>
+
+<script>
+const CLUB = 'schizzarotto-fan-club';
+const API = 'https://api.chess.com/pub';
+const COUNT = 3;
+const RANK_LABELS = ['Newest', '2nd', '3rd'];
+const RATING_KEYS = [
+  ['chess_blitz', 'Blitz'],
+  ['chess_rapid', 'Rapid'],
+  ['chess_bullet', 'Bullet'],
+];
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts * 1000;
+  const m = Math.round(diff / 60000);
+  const h = Math.round(diff / 3600000);
+  const d = Math.round(diff / 86400000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + ' minutes ago';
+  if (h < 24) return h + ' hours ago';
+  return d + ' days ago';
+}
+
+function getBest(stats) {
+  let best = 0, label = '';
+  for (const [key, lbl] of RATING_KEYS) {
+    const val = stats?.[key]?.last?.rating || stats?.[key]?.best?.rating || 0;
+    if (val > best) { best = val; label = lbl; }
+  }
+  return best ? { value: best, label } : null;
+}
+
+async function load() {
+  const root = document.getElementById('root');
+  try {
+    const res = await fetch(`${API}/club/${CLUB}/members`);
+    const data = await res.json();
+    const all = [...(data.weekly||[]), ...(data.monthly||[]), ...(data.all_time||[])];
+    if (!all.length) throw new Error('empty');
+    const seen = new Set();
+    const unique = all.filter(m => seen.has(m.username) ? false : (seen.add(m.username), true));
+    unique.sort((a, b) => (b.joined || 0) - (a.joined || 0));
+    const newest = unique.slice(0, COUNT);
+
+    const details = await Promise.all(newest.map(async (m, i) => {
+      try {
+        const [pRes, sRes] = await Promise.all([
+          fetch(`${API}/player/${m.username}`),
+          fetch(`${API}/player/${m.username}/stats`),
+        ]);
+        return { username: m.username, profile: await pRes.json(), stats: await sRes.json(), joined: m.joined, rank: i };
+      } catch {
+        return { username: m.username, profile: {}, stats: {}, joined: m.joined || 0, rank: i };
+      }
+    }));
+
+    root.innerHTML = details.map(({ username, profile, stats, joined, rank }) => {
+      const avatar = profile.avatar || '';
+      const rating = getBest(stats);
+      const url = `https://www.chess.com/member/${username}`;
+      const avatarHtml = avatar
+        ? `<img class="avatar" src="${avatar}" alt="${username}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+          + `<div class="avatar-fallback" style="display:none">&#9823;</div>`
+        : `<div class="avatar-fallback">&#9823;</div>`;
+
+      return `<div class="member-card${rank === 0 ? ' top' : ''}">
+        <div class="top-row">
+          <div class="avatar-wrap">
+            ${avatarHtml}
+            ${rank === 0 ? '<div class="new-badge"></div>' : ''}
+          </div>
+          <div class="info">
+            <div class="username-row">
+              <a class="username" href="${url}" target="_blank">${username}</a>
+              <span class="rank-badge">${RANK_LABELS[rank]}</span>
+            </div>
+            <div>
+              ${rating
+                ? `<div class="rating-pill"><span class="rating-val">${rating.value}</span><span class="rating-label">${rating.label}</span></div>`
+                : `<span class="rating-label" style="font-style:italic">Unrated</span>`}
+            </div>
+          </div>
+        </div>
+        <div class="joined-row">Joined ${timeAgo(joined)}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    root.innerHTML = `<div class="error-msg">Could not load member data.</div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>
