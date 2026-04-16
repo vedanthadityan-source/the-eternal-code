@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -193,7 +193,7 @@
     gap: 6px;
   }
 
-  .entry-name-link:hover.entry-name-link:hover {
+  .entry-name-link:hover {
     color: #9ec8e3;
     text-decoration: underline;
   }
@@ -285,28 +285,22 @@ const BIN_ID  = '69ae775943b1c97be9c3be1f';
 const API_KEY = '$2a$10$Kk8Vd5sedpfuNMV9zDuWveDoizeE6i3TpoXTbBfmA2VR9ZkpcMnB.';
 const BASE    = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 const CHESS_API_BASE = 'https://api.chess.com/pub/player/';
-const SECRET_CODE = 'vedrish2026';
-const HIDDEN_MONTH_VALUE = '13';
-const HIDDEN_MONTH_LABEL = 'V';
-const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','V'];
-const DIMS = [31,29,31,30,31,30,31,31,30,31,30,31,32];
+const SECRET_CODE = 'vedanth2026';
+const MN      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DIMS    = [31,29,31,30,31,30,31,31,30,31,30,31];
 
 let adminMode = false;
-let secretArmed = false;
 
 function buildDays() {
   var m = parseInt(document.getElementById('bd-month').value);
   var sel = document.getElementById('bd-day');
   while (sel.options.length) sel.remove(0);
-
   var o = document.createElement('option');
   o.value = '';
   o.textContent = 'Day';
   sel.appendChild(o);
-
   if (m > 0) {
-    var maxDays = DIMS[m - 1];
-    for (var i = 1; i <= maxDays; i++) {
+    for (var i = 1; i <= DIMS[m - 1]; i++) {
       var opt = document.createElement('option');
       opt.value = i;
       opt.textContent = i;
@@ -315,22 +309,13 @@ function buildDays() {
   }
 }
 
-function buildSecretMonth() {
-  var monthSel = document.getElementById('bd-month');
-  if (monthSel.querySelector('option[value="' + HIDDEN_MONTH_VALUE + '"]')) return;
-
-  var opt = document.createElement('option');
-  opt.value = HIDDEN_MONTH_VALUE;
-  opt.textContent = HIDDEN_MONTH_LABEL;
-  monthSel.appendChild(opt);
-}
-
+// ✅ FIXED: use midnight-to-midnight comparison so dates never drift or go negative
 function daysUntil(m, d) {
   var now = new Date();
-  var y = now.getFullYear();
-  var t = new Date(y, m - 1, d);
-  if (t - now < -86400000) t = new Date(y + 1, m - 1, d);
-  return Math.round((t - now) / 86400000);
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // midnight today, no time drift
+  var t = new Date(today.getFullYear(), m - 1, d);
+  if (t < today) t = new Date(today.getFullYear() + 1, m - 1, d); // birthday passed → roll to next year
+  return Math.round((t - today) / 86400000);
 }
 
 function escHtml(s) {
@@ -346,18 +331,19 @@ async function loadPlayerAvatar(username) {
     const response = await fetch(CHESS_API_BASE + escHtml(username));
     if (response.ok) {
       const data = await response.json();
-      return data.avatar || fallbackAvatar();
+      return data.avatar || defaultAvatar();
     }
   } catch (e) {}
-  return fallbackAvatar();
+  return defaultAvatar();
 }
 
-function fallbackAvatar() {
+function defaultAvatar() {
   return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTQiIHN0cm9rZT0iIzRhODhiOCIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSIjMjEzNDQ2Ii8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTAuNSIgcj0iNSIgZmlsbD0iIzkzY2RlZiIvPgo8L3N2Zz4K';
 }
 
 function renderList(entries) {
   var list = document.getElementById('bd-list');
+  list.innerHTML = '<div class="loading">Loading birthdays and avatars…</div>';
 
   if (!entries || entries.length === 0) {
     list.innerHTML = '<div class="empty">No birthdays saved yet</div>';
@@ -379,26 +365,25 @@ function renderList(entries) {
         : 'in ' + days + ' day' + (days === 1 ? '' : 's');
 
     var profile = 'https://www.chess.com/member/' + escHtml(entry.n);
-    var deleteBtn = adminMode
-      ? '<button class="btn btn-delete" onclick="deleteEntry(\\'' + entry.id + '\\')">🗑️</button>'
-      : '';
 
-    var monthText = entry.m === 13 ? 'V' : MN[entry.m - 1];
+    var deleteBtn = adminMode
+      ? '<button class="btn btn-delete" onclick="deleteEntry(\'' + entry.id + '\')">🗑️</button>'
+      : '';
 
     var div = document.createElement('div');
     div.className = 'entry';
     div.innerHTML =
-      '<img class="entry-pfp" src="' + fallbackAvatar() + '" alt="' + escHtml(entry.n) + '" loading="lazy">' +
+      '<img class="entry-pfp" src="' + defaultAvatar() + '" alt="' + escHtml(entry.n) + '" loading="lazy">' +
       '<div class="entry-info">' +
         '<a class="entry-name-link" href="' + profile + '" target="_blank" rel="noopener noreferrer">' + escHtml(entry.n) + '</a>' +
         (entry.nt ? ' <span class="entry-note">· ' + escHtml(entry.nt) + '</span>' : '') +
-        '<div class="entry-date">' + monthText + ' ' + entry.d + ' &nbsp;·&nbsp; ' + lbl + '</div>' +
+        '<div class="entry-date">' + MN[entry.m - 1] + ' ' + entry.d + ' &nbsp;·&nbsp; ' + lbl + '</div>' +
       '</div>' +
       deleteBtn;
 
     list.appendChild(div);
 
-    loadPlayerAvatar(entry.n).then(avatar => {
+    loadPlayerAvatar(entry.n).then(function(avatar) {
       var img = div.querySelector('.entry-pfp');
       if (img && avatar) img.src = avatar;
     });
@@ -407,7 +392,6 @@ function renderList(entries) {
 
 async function deleteEntry(entryId) {
   if (!confirm('Delete this birthday?')) return;
-
   try {
     var entries = await getEntries();
     entries = entries.filter(function(entry) {
@@ -421,16 +405,11 @@ async function deleteEntry(entryId) {
 }
 
 async function getEntries() {
-  try {
-    var res = await fetch(BASE + '/latest', {
-      headers: { 'X-Master-Key': API_KEY }
-    });
-    var data = await res.json();
-    return (data.record && data.record.entries) ? data.record.entries : [];
-  } catch (e) {
-    console.error('Failed to fetch entries:', e);
-    return [];
-  }
+  var res = await fetch(BASE + '/latest', {
+    headers: { 'X-Master-Key': API_KEY }
+  });
+  var data = await res.json();
+  return (data.record && data.record.entries) ? data.record.entries : [];
 }
 
 async function setEntries(entries) {
@@ -445,36 +424,28 @@ async function setEntries(entries) {
 }
 
 async function loadBirthdays() {
-  const list = document.getElementById('bd-list');
-  list.innerHTML = '<div class="loading">Loading birthdays…</div>';
-
   try {
-    const entries = await getEntries();
-    renderList(entries);
+    renderList(await getEntries());
   } catch (e) {
-    console.error('Load birthdays error:', e);
-    list.innerHTML = '<div class="empty">Could not load birthdays.</div>';
+    document.getElementById('bd-list').innerHTML = '<div class="empty">Could not load birthdays.</div>';
   }
 }
 
 async function saveBirthday() {
-  var rawName = document.getElementById('bd-name').value.trim();
-  var n = rawName.toLowerCase();
+  var n = document.getElementById('bd-name').value.trim().toLowerCase();
   var m = parseInt(document.getElementById('bd-month').value);
   var d = parseInt(document.getElementById('bd-day').value);
   var nt = document.getElementById('bd-note').value.trim();
 
-  // Step 1: vedrish2026 in username field
+  // Secret admin code check
   if (n === SECRET_CODE.toLowerCase()) {
-    secretArmed = true;
-    document.getElementById('bd-name').value = '';
-    document.getElementById('bd-name').focus();
-    document.getElementById('bd-confirm').textContent = '✅ Secret activated!';
-    document.getElementById('bd-confirm').style.display = 'block';
+    adminMode = true;
+    document.getElementById('admin-granted').style.display = 'block';
     setTimeout(function() {
-      document.getElementById('bd-confirm').style.display = 'none';
-    }, 2000);
-    buildSecretMonth();
+      document.getElementById('admin-granted').style.display = 'none';
+    }, 5000);
+    document.getElementById('bd-name').value = '';
+    renderList(await getEntries());
     return;
   }
 
@@ -506,29 +477,25 @@ async function saveBirthday() {
 
     entries.push({
       id: Date.now().toString(),
-      n: rawName,
+      n: document.getElementById('bd-name').value.trim(),
       m: m,
       d: d,
       nt: nt
     });
-
     await setEntries(entries);
 
     document.getElementById('bd-name').value = '';
     document.getElementById('bd-note').value = '';
     document.getElementById('bd-month').value = '';
     document.getElementById('bd-day').innerHTML = '<option value="">Day</option>';
-    secretArmed = false; // Reset secret state
+    buildDays();
 
     var c = document.getElementById('bd-confirm');
     c.style.display = 'block';
-    setTimeout(function() {
-      c.style.display = 'none';
-    }, 2500);
+    setTimeout(function() { c.style.display = 'none'; }, 2500);
 
     renderList(entries);
   } catch (e) {
-    console.error('Save error:', e);
     document.getElementById('bd-error').textContent = '❌ Error saving. Try again.';
     document.getElementById('bd-error').style.display = 'block';
     setTimeout(function() {
@@ -539,42 +506,6 @@ async function saveBirthday() {
   btn.disabled = false;
   btn.textContent = 'Save Birthday';
 }
-
-// Keep original onchange for month dropdown
-document.getElementById('bd-month').onchange = function() {
-  var monthVal = this.value;
-  
-  if (secretArmed && monthVal === HIDDEN_MONTH_VALUE) {
-    // Admin secret month selected - populate 32 days
-    var daySel = document.getElementById('bd-day');
-    while (daySel.options.length) daySel.remove(0);
-    var o = document.createElement('option');
-    o.value = '';
-    o.textContent = 'Day';
-    daySel.appendChild(o);
-    for (var i = 1; i <= 32; i++) {
-      var opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = i;
-      daySel.appendChild(opt);
-    }
-    return;
-  }
-  
-  buildDays();
-};
-
-// Admin activation on day 32 selection
-document.getElementById('bd-day').addEventListener('change', function() {
-  if (secretArmed && document.getElementById('bd-month').value === HIDDEN_MONTH_VALUE && this.value === '32') {
-    adminMode = true;
-    document.getElementById('admin-granted').style.display = 'block';
-    setTimeout(function() {
-      document.getElementById('admin-granted').style.display = 'none';
-    }, 5000);
-    loadBirthdays();
-  }
-});
 
 loadBirthdays();
 </script>
